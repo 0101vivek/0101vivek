@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 class LoginModel {
-  String email;
+  String phoneNo;
   String password;
 
-  LoginModel({this.email, this.password});
+  LoginModel({this.phoneNo, this.password});
 
-  String getEmail() {
-    return email;
-  }
+  // String getEmail() {
+  //   return phoneNo;
+  // }
 
-  String getPassword() {
-    return password;
-  }
+  // String getPassword() {
+  //   return password;
+  // }
 }

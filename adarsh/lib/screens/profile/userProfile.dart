@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:adarsh/screens/Login/components/login.dart';
 import 'package:adarsh/screens/updateEmailandPhoneNo/updateData.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_offline/flutter_offline.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -29,8 +30,9 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       var token = prefs.getString('token');
+      print(token);
       final response = await http.post(
-        'http://192.168.0.100:3000/user_history',
+        'http://www.metalmanauto.xyz:2078/user_history',
         headers: {
           'Content-Type': 'application/json;charset=UTF-8',
         },
@@ -41,101 +43,159 @@ class _ProfilePageState extends State<ProfilePage> {
         return parsed;
       }
     } catch (e) {
-      print(e);
+      // print(e);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: Colors.grey.shade100,
-        extendBodyBehindAppBar: true,
-        extendBody: true,
-        body: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              FutureBuilder(
-                  future: getUserDetails(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      // print(snapshot.error);
-                    }
-                    return snapshot.hasData
-                        ? Container(
-                            child: Column(children: <Widget>[
-                              ProfileHeader(
-                                avatar: NetworkImage(
-                                    "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"),
-                                title: snapshot.data['result']['first_name'] +
-                                    " " +
-                                    snapshot.data['result']['last_name'],
-                                actions: <Widget>[
-                                  MaterialButton(
-                                    color: Colors.white,
-                                    shape: CircleBorder(),
-                                    elevation: 0,
-                                    child: Icon(Icons.edit),
-                                    onPressed: () {
-                                      var time =
-                                          Timer(Duration(seconds: 2), () {});
-                                      time.cancel();
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  UpdateDataScreen()));
+    return OfflineBuilder(
+      debounceDuration: Duration.zero,
+      connectivityBuilder: (
+        BuildContext context,
+        ConnectivityResult connectivity,
+        Widget child,
+      ) {
+        if (connectivity == ConnectivityResult.none) {
+          return Scaffold(
+              body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 20),
+                Text("Check Internet Connection !",
+                    style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.black,
+                        backgroundColor: Colors.white))
+              ],
+            ),
+          ));
+        }
+        return child;
+      },
+      child: Scaffold(
+          backgroundColor: Colors.grey.shade100,
+          extendBodyBehindAppBar: true,
+          extendBody: true,
+          body: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                FutureBuilder(
+                    future: getUserDetails(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        // print(snapshot.error);
+                      }
+                      return snapshot.hasData
+                          ? Container(
+                              child: Column(children: <Widget>[
+                                ProfileHeader(
+                                  avatar: NetworkImage(
+                                      "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"),
+                                  title: snapshot.data['result']['first_name']
+                                          .toString()
+                                          .toUpperCase() +
+                                      " " +
+                                      snapshot.data['result']['last_name']
+                                          .toString()
+                                          .toUpperCase(),
+                                  actions: <Widget>[
+                                    MaterialButton(
+                                      color: Colors.white,
+                                      shape: CircleBorder(),
+                                      elevation: 0,
+                                      child: Icon(Icons.edit),
+                                      onPressed: () {
+                                        var time =
+                                            Timer(Duration(seconds: 2), () {});
+                                        time.cancel();
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    UpdateDataScreen(
+                                                      name: snapshot
+                                                              .data['result']
+                                                                  ['first_name']
+                                                              .toString()
+                                                              .toUpperCase() +
+                                                          " " +
+                                                          snapshot
+                                                              .data['result']
+                                                                  ['last_name']
+                                                              .toString()
+                                                              .toUpperCase(),
+                                                      email: snapshot
+                                                              .data['result']
+                                                          ['email'],
+                                                      phone: snapshot
+                                                              .data['result']
+                                                          ['mobileno'],
+                                                    )));
+                                      },
+                                    )
+                                  ],
+                                ),
+                                const SizedBox(height: 15.0),
+                                UserInfo(
+                                  email: snapshot.data['result']['email']
+                                      .toString(),
+                                  mobileNo: snapshot.data['result']['mobileno']
+                                      .toString(),
+                                ),
+                                const SizedBox(height: 15.0),
+                                Container(
+                                  height: 50,
+                                  margin: EdgeInsets.symmetric(horizontal: 50),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(50),
+                                      color: Colors.blue[800]),
+                                  child: FlatButton(
+                                    onPressed: () async {
+                                      SharedPreferences prefs =
+                                          await SharedPreferences.getInstance();
+                                      prefs.remove('token');
+                                      prefs.remove('name');
+                                      prefs.remove('isLogin');
+                                      Future.delayed(
+                                          Duration(milliseconds: 500), () {
+                                        Navigator.of(context)
+                                            .pushAndRemoveUntil(
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        LoginScreen()),
+                                                (Route<dynamic> route) =>
+                                                    false);
+                                      });
                                     },
-                                  )
-                                ],
-                              ),
-                              const SizedBox(height: 15.0),
-                              UserInfo(
-                                email: snapshot.data['result']['email'],
-                                mobileNo: snapshot.data['result']['mobileno'],
-                              ),
-                              const SizedBox(height: 15.0),
-                              Container(
-                                height: 50,
-                                margin: EdgeInsets.symmetric(horizontal: 50),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(50),
-                                    color: Colors.blue[800]),
-                                child: FlatButton(
-                                  onPressed: () async {
-                                    SharedPreferences prefs =
-                                        await SharedPreferences.getInstance();
-                                    prefs.remove('token');
-                                    Navigator.of(context).pushAndRemoveUntil(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                LoginScreen()),
-                                        (Route<dynamic> route) => false);
-                                  },
-                                  child: Center(
-                                    child: Text(
-                                      "Log Out",
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
+                                    child: Center(
+                                      child: Text(
+                                        "Log Out",
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ]),
-                          )
-                        : new Container(
-                            child: new Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: new Center(
-                                    child: new CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation(
-                                      Theme.of(context).primaryColor),
-                                ))),
-                          );
-                  }),
-            ],
-          ),
-        ));
+                              ]),
+                            )
+                          : new Container(
+                              child: new Padding(
+                                  padding: const EdgeInsets.all(5.0),
+                                  child: new Center(
+                                      child: new CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation(
+                                        Theme.of(context).primaryColor),
+                                  ))),
+                            );
+                    }),
+              ],
+            ),
+          )),
+    );
   }
 }
 

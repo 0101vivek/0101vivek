@@ -8,7 +8,7 @@ var schema = new mongoose.Schema({
     charges:Number,
     status:"String",
     Type:"String",
-    isProcessingForBook:{type:"boolean",default:false},
+    startDate:"String",
     uploaded : {type:"Date",default:Date.now}
 });
 var Room_schema = mongoose.model("Room", schema);

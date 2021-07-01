@@ -20,9 +20,17 @@ class RoomDetails {
   final String description;
   final int charges;
   final String image;
+  final String status;
+  final String startDate;
 
   RoomDetails(
-      {this.id, this.roomNumber, this.description, this.charges, this.image});
+      {this.id,
+      this.roomNumber,
+      this.description,
+      this.charges,
+      this.status,
+      this.startDate,
+      this.image});
 
   factory RoomDetails.fromJson(Map<String, dynamic> json) {
     return RoomDetails(
@@ -31,6 +39,8 @@ class RoomDetails {
       description: json['description'] as String,
       charges: json['charges'] as int,
       image: json['image'] as String,
+      startDate: json['startDate'] as String,
+      status: json['status'] as String,
     );
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:adarsh/screens/forgetScreen/components/resetPassword.dart';
 import 'package:cool_alert/cool_alert.dart';
+import 'package:flutter_offline/flutter_offline.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
@@ -17,7 +18,7 @@ final inputDecoration = InputDecoration(
   enabledBorder: inputBorder,
 );
 
-String otp;
+String otp = null;
 
 class OTPPage extends StatefulWidget {
   final String email;
@@ -40,7 +41,7 @@ class _OTPPageState extends State<OTPPage> {
 
   Future resendOtp() async {
     try {
-      var url = "http://192.168.0.100:3000/resend_otp";
+      var url = "https://vanillacode.tech/resend_otp";
       final http.Response response = await http.post(
         url,
         headers: {
@@ -50,7 +51,13 @@ class _OTPPageState extends State<OTPPage> {
             {'email': this.widget.email, 'phoneNo': this.widget.phoneNo}),
       );
 
-      if (response.statusCode == 500) {
+      if (response.statusCode == 200) {
+        minute = 4;
+        seconds = 59;
+        otp = null;
+        time1.cancel();
+        setUpTimedForOtp();
+      } else if (response.statusCode == 500) {
         showSomethingWentWrong();
       }
     } catch (e) {}
@@ -68,7 +75,7 @@ class _OTPPageState extends State<OTPPage> {
   Future validateOtp() async {
     try {
       print(otp);
-      var url = "http://192.168.0.102:3000/verify_otp";
+      var url = "https://vanillacode.tech/verify_otp";
       final http.Response response = await http.post(
         url,
         headers: {
@@ -85,36 +92,36 @@ class _OTPPageState extends State<OTPPage> {
         navigatepasswordscreen();
       } else if (response.statusCode == 404) {
         showInvalidDataMessage();
-      } else if (response.statusCode == 505) {
+      } else if (response.statusCode == 500) {
         showSomethingWentWrong();
       }
     } catch (e) {}
   }
 
   navigatepasswordscreen() {
-    var time = Timer(Duration(seconds: 2), () {});
-    time.cancel();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) => ResetPassword(
-                email: this.widget.email,
-                phoneNo: this.widget.phoneNo,
-              )),
-    );
+    Future.delayed(Duration(milliseconds: 500), () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ResetPassword(
+                  email: this.widget.email,
+                  phoneNo: this.widget.phoneNo,
+                )),
+      );
+    });
   }
 
   showInvalidDataMessage() {
     CoolAlert.show(
       context: context,
       type: CoolAlertType.error,
-      title: "Oops...",
-      text: "Wrong Otp",
+      title: "Wrong Otp".toUpperCase(),
+      confirmBtnColor: Colors.blue[800],
     );
   }
 
   setUpTimedForOtp() {
-    time1 = Timer.periodic(Duration(milliseconds: 1000), (timer) {
+    time1 = Timer.periodic(Duration(seconds: 1), (timer) {
       if (minute == 0 && seconds == 0) {
         time1.cancel();
       } else if (seconds == 0) {
@@ -137,77 +144,101 @@ class _OTPPageState extends State<OTPPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return OfflineBuilder(
+      debounceDuration: Duration.zero,
+      connectivityBuilder: (
+        BuildContext context,
+        ConnectivityResult connectivity,
+        Widget child,
+      ) {
+        if (connectivity == ConnectivityResult.none) {
+          return Container(
+              child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 20),
+                Text("Check Internet Connection !",
+                    style: TextStyle(fontSize: 15))
+              ],
+            ),
+          ));
+        }
+        return child;
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
-      ),
-      body: Container(
-        padding: const EdgeInsets.all(16.0),
-        width: double.maxFinite,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 30.0),
-            Text(
-              "Please enter the 4-digit OTP",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18.0),
-            ),
-            const SizedBox(height: 20.0),
-            OTPFields(),
-            const SizedBox(height: 20.0),
-            Text(
-              "Expiring in " +
-                  "0" +
-                  minute.toString() +
-                  ":" +
-                  seconds.toString(),
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16.0, color: Colors.grey),
-            ),
-            const SizedBox(height: 10.0),
-            TextButton(
-              child: Text(
-                "RESEND OTP",
-                style: TextStyle(
-                  color: Colors.blue[600],
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.w500,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          iconTheme: IconThemeData(color: Colors.black),
+        ),
+        body: Container(
+          padding: const EdgeInsets.all(16.0),
+          width: double.maxFinite,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 30.0),
+              Text(
+                "Please enter the 4-digit OTP",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18.0),
+              ),
+              const SizedBox(height: 20.0),
+              OTPFields(),
+              const SizedBox(height: 20.0),
+              Text(
+                "Expiring in " +
+                    "0" +
+                    minute.toString() +
+                    ":" +
+                    seconds.toString(),
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16.0, color: Colors.grey),
+              ),
+              const SizedBox(height: 10.0),
+              TextButton(
+                child: Text(
+                  "RESEND OTP",
+                  style: TextStyle(
+                    color: Colors.blue[600],
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
+                onPressed: () async {
+                  setState(() {
+                    minute = 4;
+                    seconds = 59;
+                  });
+                  setUpTimedForOtp();
+                  await resendOtp();
+                },
               ),
-              onPressed: () async {
-                setState(() {
-                  minute = 4;
-                  seconds = 59;
-                });
-                setUpTimedForOtp();
-                await resendOtp();
-              },
-            ),
-            const SizedBox(height: 30.0),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                primary: Colors.blue[900],
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30.0)),
-                padding: const EdgeInsets.all(16.0),
-                minimumSize: Size(200, 60),
-              ),
-              child: Text(
-                "Confirm",
-                style: TextStyle(
-                  fontSize: 18.0,
+              const SizedBox(height: 30.0),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.blue[900],
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0)),
+                  padding: const EdgeInsets.all(16.0),
+                  minimumSize: Size(200, 60),
                 ),
-              ),
-              onPressed: () async {
-                await validateOtp();
-              },
-            )
-          ],
+                child: Text(
+                  "Confirm",
+                  style: TextStyle(
+                    fontSize: 18.0,
+                  ),
+                ),
+                onPressed: () async {
+                  await validateOtp();
+                },
+              )
+            ],
+          ),
         ),
       ),
     );

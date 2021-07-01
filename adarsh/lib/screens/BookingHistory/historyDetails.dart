@@ -20,30 +20,39 @@ class Details {
   final String roomId;
   final String roomBookingDay;
   final String roomEndingDay;
+  final String orderId;
   final int totalAmount;
   final int roomNumber;
-  final String description;
   final String roomType;
+  final String status;
+  final String bookingStatus;
+  final String payment;
 
   Details(
       {this.userId,
+      this.orderId,
+      this.payment,
       this.roomId,
       this.roomType,
+      this.status,
       this.roomNumber,
       this.roomBookingDay,
       this.roomEndingDay,
       this.totalAmount,
-      this.description});
+      this.bookingStatus});
 
   factory Details.fromJson(Map<String, dynamic> json) {
     return Details(
         userId: json['userId'] as String,
-        roomId: json['roomId'] as String,
+        roomId: json['roomid'] as String,
         roomBookingDay: json['startDate'] as String,
         roomEndingDay: json['endDate'] as String,
-        description: json['description'] as String,
         totalAmount: json['Amount'] as int,
         roomNumber: json['roomNumber'] as int,
+        orderId: json['_id'] as String,
+        status: json['status'] as String,
+        payment: json['payment'] as String,
+        bookingStatus: json['BookingStatus'] as String,
         roomType: json['roomType'] as String);
   }
 }

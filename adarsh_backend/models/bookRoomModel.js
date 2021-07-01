@@ -1,13 +1,14 @@
 const mongoose = require('mongoose');
 var Schema = mongoose.Schema,
-ObjectId = Schema.ObjectId; 
-ObjectId1 = Schema.ObjectId; 
+ObjectId = Schema.ObjectId;  
 var schema = new mongoose.Schema({
     userId: ObjectId,
     Name:"String",
     Phone:"Number",
+    GuestCount:"Number",
     roomType: "String",
-    roomId: ObjectId1,
+    // roomid: ObjectId1,
+    roomid: String,
     startDate:"Date",
     // startDate:"String",
     endDate:"Date",
@@ -17,7 +18,8 @@ var schema = new mongoose.Schema({
     Amount:"Number",
     roomNumber:Number,
     status:"String",
-    roomIsStillChecking:"boolean",
+    BookingStatus:"String",
+    paymentStatus:"String"
 });
 var Room_Booking_schema = mongoose.model("Booking", schema);
 module.exports = {Room_Booking_schema};

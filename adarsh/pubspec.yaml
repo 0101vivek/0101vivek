@@ -27,12 +27,24 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
+  flutter_launcher_icons: "^0.9.0"
+  flutter_responsive_screen: ^1.0.0
+  sizer: ^2.0.13
   datetime_picker_formfield: ^2.0.0
+  paytm_allinonesdk: ^1.0.0
   webview_flutter: ^2.0.3
+  calendar_appbar: ^0.0.1
+  date_range_picker: ^1.0.5
+  rxdart: ^0.27.1
+  number_inc_dec: ^0.6.6
+  flutter_local_notifications: ^6.0.0
+  flutter_native_timezone:
+  path_provider:
+  device_info:
   avatar_letter: ^1.0.1
   cool_alert: ^1.0.3
-  http: ^0.12.1
-  cached_network_image: ^0.7.0
+  http: ^0.11.2
+  passwordfield: ^0.0.82
   shared_preferences:
   carousel_slider: ^2.3.1
   scoped_model: ^1.1.0
@@ -40,11 +52,18 @@ dependencies:
   simple_animations: ^2.5.0
   font_awesome_flutter: ^9.0.0
   flutter_custom_clippers: ^1.1.1
+  connectivity: ^3.0.3
+  flutter_offline: "^2.0.0"
+  url_launcher: ^6.0.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
+flutter_icons:
+  image_path: "assets/images/Zep3.png"
+  android: true
+  ios: true
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
