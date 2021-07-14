@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:adarsh/modals/userSignup.dart';
 import 'package:adarsh/screens/Login/login_screen.dart';
 import 'package:adarsh/screens/SignUp/Components/otpPage.dart';
 import 'package:adarsh/screens/Welcome/welcome_screen.dart';
+import 'package:adarsh/serverUrl.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_offline/flutter_offline.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:http/http.dart' as http;
+import 'dart:math' as Math;
 
 Color blueColors = Colors.blue[900];
 Color blueLightColors = Colors.blue[400];
@@ -28,6 +31,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isPassword = true;
   bool serverError = false;
   String otpNo;
+  bool userAlreadyRegisterd = false;
 
   void initState() {
     super.initState();
@@ -37,79 +41,42 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 
-  Future sendOtp() async {
-    setState(() {
-      isSubmit = true;
-    });
-    var url = "http://www.metalmanauto.xyz:2078/send_otp";
-    final http.Response response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json;charset=UTF-8',
-      },
-      body: jsonEncode({
-        'phoneNo': model.phoneNumber,
-      }),
-    );
-
-    var parse = jsonDecode(response.body);
-
-    if (response.statusCode == 200) {
-      setState(() {
-        isSubmit = false;
-      });
-      otpNo = parse['otp'];
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setString('otp', parse['otp']);
-      // navigateotpscreen();
-    } else if (response.statusCode == 404) {
-      setState(() {
-        isSubmit = false;
-      });
-      // showInvalidDataMessage();
-    } else if (response.statusCode == 500) {
-      setState(() {
-        isSubmit = false;
-      });
-      // showSomethingWentWrong();
-    }
-  }
-
   Future signup() async {
     setState(() {
       isSubmit = true;
     });
-    print(model.firstName);
-    var url = Uri.parse('http://www.metalmanauto.xyz:2078/signup');
-    http.Response response = await http.post(url,
+
+    http.Response response = await http.post(serverUrl + '/signup',
         headers: {'Content-Type': 'application/json;charset=UTF-8'},
         body: jsonEncode({
           "first_name": model.firstName,
           "last_name": model.lastName,
           "mobileno": model.phoneNumber,
           "email": model.email,
-          "password": model.password
+          "password": model.password,
+          "otpVerified": false
         }));
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var parse = jsonDecode(response.body);
-    if (response.statusCode == 200) {
-      await prefs.setString("token", parse['token']);
-      setState(() {
-        isSubmit = false;
-        serverError = false;
-      });
-    } else if (response.statusCode == 409) {
+    if (response.statusCode == 409) {
       await prefs.setString("token", '');
       setState(() {
         isSubmit = false;
         serverError = false;
+        userAlreadyRegisterd = true;
       });
     } else if (response.statusCode == 500) {
       await prefs.setString("token", '');
       setState(() {
         isSubmit = false;
         serverError = true;
+      });
+    } else if (response.statusCode == 200) {
+      setState(() {
+        isSubmit = false;
+        serverError = false;
+        userAlreadyRegisterd = false;
       });
     }
   }
@@ -145,6 +112,44 @@ class _SignUpPageState extends State<SignUpPage> {
     } else {
       return Container();
     }
+  }
+
+  Future sendOTP() async {
+    setState(() {
+      isSubmit = true;
+    });
+    String data = generateOtp();
+    print(data);
+    try {
+      http.Response response = await http.post(
+        serverUrl + '/send_otp',
+        headers: {
+          'Content-Type': 'application/json;charset=UTF-8',
+        },
+        body: jsonEncode({
+          "mobile": model.phoneNumber,
+          "name": model.firstName + " " + model.lastName.toString(),
+          "status": "Sign Up",
+          "otp": data.toString()
+        }),
+      );
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString("OTP", data);
+      setState(() {
+        isSubmit = false;
+      });
+    } catch (e) {}
+  }
+
+  generateOtp() {
+    Random random = new Random();
+    int r;
+    String otp = "";
+    for (int i = 0; i < 4; i++) {
+      r = 0 + random.nextInt(9 - 0);
+      otp = otp + r.toString();
+    }
+    return otp;
   }
 
   @override
@@ -486,35 +491,36 @@ class _SignUpPageState extends State<SignUpPage> {
                                         } else {
                                           await signup();
                                           // await sendOtp();
-                                          SharedPreferences prefs =
-                                              await SharedPreferences
-                                                  .getInstance();
-                                          String token =
-                                              prefs.getString("token");
-                                          if (token != '') {
+
+                                          if (userAlreadyRegisterd == false) {
                                             Future.delayed(
-                                                Duration(milliseconds: 500),
-                                                () {
-                                              CoolAlert.show(
-                                                  context: context,
-                                                  type: CoolAlertType.success,
-                                                  confirmBtnColor:
-                                                      Colors.blue[800],
-                                                  title:
-                                                      "Registration successfully",
-                                                  onConfirmBtnTap: () {
-                                                    Navigator.of(context)
-                                                        .pushAndRemoveUntil(
-                                                            MaterialPageRoute(
-                                                                builder:
-                                                                    (context) =>
-                                                                        Login_Screen()),
-                                                            (Route<dynamic>
-                                                                    route) =>
-                                                                false);
+                                                Duration(milliseconds: 1000),
+                                                () async {
+                                              await sendOTP().then((value) => {
+                                                    Navigator.of(context).push(
+                                                        MaterialPageRoute(
+                                                            builder:
+                                                                (context) =>
+                                                                    OTPPage(
+                                                                      password:
+                                                                          model
+                                                                              .password,
+                                                                      firstName:
+                                                                          model
+                                                                              .firstName,
+                                                                      lastName:
+                                                                          model
+                                                                              .lastName,
+                                                                      email: model
+                                                                          .email,
+                                                                      phoneNumber:
+                                                                          model
+                                                                              .phoneNumber,
+                                                                    )))
                                                   });
                                             });
-                                          } else if (!serverError) {
+                                          } else if (userAlreadyRegisterd ==
+                                              true) {
                                             CoolAlert.show(
                                                 context: context,
                                                 type: CoolAlertType.error,
@@ -532,7 +538,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                                                   route) =>
                                                               false);
                                                 });
-                                          } else {
+                                          } else if (serverError == true) {
                                             CoolAlert.show(
                                               context: context,
                                               type: CoolAlertType.error,
@@ -561,7 +567,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               1.5,
                               InkWell(
                                 onTap: () {
-                                  Future.delayed(Duration(milliseconds: 500),
+                                  Future.delayed(Duration(milliseconds: 1000),
                                       () {
                                     Navigator.of(context).pushAndRemoveUntil(
                                         MaterialPageRoute(

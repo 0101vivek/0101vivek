@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:adarsh/screens/Login/components/login.dart';
 import 'package:adarsh/screens/profile/userProfile.dart';
+import 'package:adarsh/serverUrl.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_offline/flutter_offline.dart';
@@ -50,7 +51,7 @@ class _UpdateDataScreenState extends State<UpdateDataScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString('token');
 
-    var url = Uri.parse('http://www.metalmanauto.xyz:2078/update');
+    var url = Uri.parse(serverUrl + '/update');
     http.Response response = await http.post(url,
         headers: {'Content-Type': 'application/json;charset=UTF-8'},
         body: jsonEncode({"token": token, "password": password}));
@@ -70,7 +71,7 @@ class _UpdateDataScreenState extends State<UpdateDataScreen> {
           prefs.remove('token');
           prefs.remove('name');
           prefs.remove('isLogin');
-          Future.delayed(Duration(milliseconds: 10), () {
+          Future.delayed(Duration(milliseconds: 1000), () {
             Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => LoginScreen()),
                 (Route<dynamic> route) => false);
@@ -82,7 +83,7 @@ class _UpdateDataScreenState extends State<UpdateDataScreen> {
           prefs.remove('token');
           prefs.remove('name');
           prefs.remove('isLogin');
-          Future.delayed(Duration(milliseconds: 10), () {
+          Future.delayed(Duration(milliseconds: 1000), () {
             Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => LoginScreen()),
                 (Route<dynamic> route) => false);

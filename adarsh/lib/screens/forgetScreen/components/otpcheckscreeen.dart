@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:adarsh/screens/forgetScreen/components/resetPassword.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter_offline/flutter_offline.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../serverUrl.dart';
 
 final inputBorder = OutlineInputBorder(
   borderRadius: BorderRadius.circular(8.0),
@@ -18,13 +22,16 @@ final inputDecoration = InputDecoration(
   enabledBorder: inputBorder,
 );
 
-String otp = null;
+String otp;
+String num1;
+String num2;
+String num3;
+String num4;
 
 class OTPPage extends StatefulWidget {
-  final String email;
   final String phoneNo;
 
-  const OTPPage({Key key, this.email, this.phoneNo}) : super(key: key);
+  const OTPPage({Key key, this.phoneNo}) : super(key: key);
   @override
   _OTPPageState createState() => _OTPPageState();
 }
@@ -39,27 +46,24 @@ class _OTPPageState extends State<OTPPage> {
     setUpTimedForOtp();
   }
 
-  Future resendOtp() async {
+  Future sendOTP() async {
+    String data = generateOtp();
+    print(data);
     try {
-      var url = "https://vanillacode.tech/resend_otp";
-      final http.Response response = await http.post(
-        url,
+      http.Response response = await http.post(
+        serverUrl + '/send_otp',
         headers: {
           'Content-Type': 'application/json;charset=UTF-8',
         },
-        body: jsonEncode(
-            {'email': this.widget.email, 'phoneNo': this.widget.phoneNo}),
+        body: jsonEncode({
+          "mobile": this.widget.phoneNo,
+          "name": null,
+          "status": "Forget Password",
+          "otp": data.toString()
+        }),
       );
-
-      if (response.statusCode == 200) {
-        minute = 4;
-        seconds = 59;
-        otp = null;
-        time1.cancel();
-        setUpTimedForOtp();
-      } else if (response.statusCode == 500) {
-        showSomethingWentWrong();
-      }
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString("OTP", data);
     } catch (e) {}
   }
 
@@ -72,30 +76,15 @@ class _OTPPageState extends State<OTPPage> {
     );
   }
 
-  Future validateOtp() async {
-    try {
-      print(otp);
-      var url = "https://vanillacode.tech/verify_otp";
-      final http.Response response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json;charset=UTF-8',
-        },
-        body: jsonEncode({
-          'email': this.widget.email,
-          'phoneNo': this.widget.phoneNo,
-          "otp": otp
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        navigatepasswordscreen();
-      } else if (response.statusCode == 404) {
-        showInvalidDataMessage();
-      } else if (response.statusCode == 500) {
-        showSomethingWentWrong();
-      }
-    } catch (e) {}
+  generateOtp() {
+    Random random = new Random();
+    int r;
+    String otp = "";
+    for (int i = 0; i < 4; i++) {
+      r = 0 + random.nextInt(9 - 0);
+      otp = otp + r.toString();
+    }
+    return otp;
   }
 
   navigatepasswordscreen() {
@@ -104,7 +93,6 @@ class _OTPPageState extends State<OTPPage> {
         context,
         MaterialPageRoute(
             builder: (context) => ResetPassword(
-                  email: this.widget.email,
                   phoneNo: this.widget.phoneNo,
                 )),
       );
@@ -115,7 +103,7 @@ class _OTPPageState extends State<OTPPage> {
     CoolAlert.show(
       context: context,
       type: CoolAlertType.error,
-      title: "Wrong Otp".toUpperCase(),
+      title: "Invalid Otp".toUpperCase(),
       confirmBtnColor: Colors.blue[800],
     );
   }
@@ -124,11 +112,6 @@ class _OTPPageState extends State<OTPPage> {
     time1 = Timer.periodic(Duration(seconds: 1), (timer) {
       if (minute == 0 && seconds == 0) {
         time1.cancel();
-      } else if (seconds == 0) {
-        setState(() {
-          seconds = 59;
-          minute = minute - 1;
-        });
       } else {
         setState(() {
           seconds = seconds - 1;
@@ -215,7 +198,7 @@ class _OTPPageState extends State<OTPPage> {
                     seconds = 59;
                   });
                   setUpTimedForOtp();
-                  await resendOtp();
+                  await sendOTP();
                 },
               ),
               const SizedBox(height: 30.0),
@@ -234,7 +217,20 @@ class _OTPPageState extends State<OTPPage> {
                   ),
                 ),
                 onPressed: () async {
-                  await validateOtp();
+                  otp = "" +
+                      num1.toString() +
+                      num2.toString() +
+                      num3.toString() +
+                      num4.toString();
+                  print(otp);
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  var sendOTP = prefs.getString("OTP");
+                  if (sendOTP.toString() == otp) {
+                    navigatepasswordscreen();
+                  } else {
+                    showInvalidDataMessage();
+                  }
                 },
               )
             ],
@@ -301,7 +297,7 @@ class _OTPFieldsState extends State<OTPFields> {
                   decoration: inputDecoration,
                   onChanged: (String value) {
                     nextField(value, pin2FN);
-                    otp = value;
+                    num1 = value;
                   },
                 ),
               ),
@@ -315,7 +311,7 @@ class _OTPFieldsState extends State<OTPFields> {
                   decoration: inputDecoration,
                   onChanged: (String value) {
                     nextField(value, pin3FN);
-                    otp = otp + value;
+                    num2 = value;
                   },
                 ),
               ),
@@ -329,7 +325,7 @@ class _OTPFieldsState extends State<OTPFields> {
                   decoration: inputDecoration,
                   onChanged: (String value) {
                     nextField(value, pin4FN);
-                    otp = otp + value;
+                    num3 = value;
                   },
                 ),
               ),
@@ -345,7 +341,7 @@ class _OTPFieldsState extends State<OTPFields> {
                     if (value.length == 1) {
                       pin4FN.unfocus();
                     }
-                    otp = otp + value;
+                    num4 = value;
                   },
                 ),
               ),

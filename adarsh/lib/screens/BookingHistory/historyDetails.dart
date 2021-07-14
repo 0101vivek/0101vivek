@@ -27,12 +27,16 @@ class Details {
   final String status;
   final String bookingStatus;
   final String payment;
+  final String paymentStatus;
+  final String paytmOrderId;
 
   Details(
       {this.userId,
       this.orderId,
       this.payment,
       this.roomId,
+      this.paymentStatus,
+      this.paytmOrderId,
       this.roomType,
       this.status,
       this.roomNumber,
@@ -51,8 +55,10 @@ class Details {
         roomNumber: json['roomNumber'] as int,
         orderId: json['_id'] as String,
         status: json['status'] as String,
-        payment: json['payment'] as String,
+        payment: json['paymentStatus'] as String,
         bookingStatus: json['BookingStatus'] as String,
+        paymentStatus: json['paymentStatus'] as String,
+        paytmOrderId: json['paymentOrderId'] as String,
         roomType: json['roomType'] as String);
   }
 }

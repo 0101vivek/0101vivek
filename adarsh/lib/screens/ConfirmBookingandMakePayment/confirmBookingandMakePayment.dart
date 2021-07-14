@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:adarsh/screens/HomeBooking/homePage.dart';
 import 'package:adarsh/screens/Receipt/receipt.dart';
+import 'package:adarsh/serverUrl.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -60,7 +61,7 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
   Future checkRoomAvailable() async {
     try {
       http.Response response =
-          await http.post('http://www.metalmanauto.xyz:2078/check_available_book_room',
+          await http.post(serverUrl + '/check_available_book_room',
               headers: {'Content-Type': 'application/json;charset=UTF-8'},
               body: jsonEncode({
                 "roomId": widget.roomId,
@@ -79,22 +80,21 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var token = prefs.getString('token');
 
-    http.Response response =
-        await http.post('http://www.metalmanauto.xyz:2078/book_room',
-            headers: {'Content-Type': 'application/json;charset=UTF-8'},
-            body: jsonEncode({
-              "token": token,
-              "roomId": widget.roomId,
-              "startDate": widget.startingDay,
-              "endDate": widget.endingDay,
-              "Amount": widget.totalAmount,
-              "documentName": documentType,
-              "documentType": documentNumber,
-              "roomType": widget.roomType,
-              "roomNumber": widget.roomNumber,
-              // "totalGuest": widget.totalGuest,
-              // "description": widget.description
-            }));
+    http.Response response = await http.post(serverUrl + '/book_room',
+        headers: {'Content-Type': 'application/json;charset=UTF-8'},
+        body: jsonEncode({
+          "token": token,
+          "roomId": widget.roomId,
+          "startDate": widget.startingDay,
+          "endDate": widget.endingDay,
+          "Amount": widget.totalAmount,
+          "documentName": documentType,
+          "documentType": documentNumber,
+          "roomType": widget.roomType,
+          "roomNumber": widget.roomNumber,
+          // "totalGuest": widget.totalGuest,
+          // "description": widget.description
+        }));
 
     if (response.statusCode == 200) {
       var parse = jsonDecode(response.body);
@@ -468,7 +468,7 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
                                   type: CoolAlertType.success,
                                   text: 'Room Booked successfully!',
                                   onConfirmBtnTap: () {
-                                    Future.delayed(Duration(milliseconds: 500),
+                                    Future.delayed(Duration(milliseconds: 1000),
                                         () {
                                       Navigator.of(context)
                                           .push(MaterialPageRoute(
@@ -496,7 +496,7 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
                                   title: "Oops...",
                                   text: "Sorry, something went wrong",
                                   onConfirmBtnTap: () {
-                                    Future.delayed(Duration(milliseconds: 500),
+                                    Future.delayed(Duration(milliseconds: 1000),
                                         () {
                                       Navigator.of(context).pushAndRemoveUntil(
                                           MaterialPageRoute(
@@ -512,7 +512,7 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
                                 title: "Oops...",
                                 text: "Sorry, something went wrong",
                                 onConfirmBtnTap: () {
-                                  Future.delayed(Duration(milliseconds: 500),
+                                  Future.delayed(Duration(milliseconds: 1000),
                                       () {
                                     Navigator.of(context).pushAndRemoveUntil(
                                         MaterialPageRoute(

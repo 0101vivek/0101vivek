@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:adarsh/screens/HomeBooking/homePage.dart';
+import 'package:adarsh/serverUrl.dart';
 import 'package:calendar_appbar/calendar_appbar.dart';
 import 'package:adarsh/screens/BookingHistory/historyDetails.dart';
 import 'package:adarsh/screens/roomDetails/bookRoomDetails.dart';
@@ -31,14 +32,13 @@ class _HistoryState extends State<History> {
   Future fetchDetailsByDate() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    http.Response response =
-        await http.post('http://www.metalmanauto.xyz:2078/getDetailsByDate',
-            headers: {'Content-Type': 'application/json;charset=UTF-8'},
-            body: jsonEncode({
-              "token": prefs.getString('token'),
-              "initialDate": setInitialDate.toString(),
-              "lastDate": setLastDate.toString()
-            }));
+    http.Response response = await http.post(serverUrl + '/getDetailsByDate',
+        headers: {'Content-Type': 'application/json;charset=UTF-8'},
+        body: jsonEncode({
+          "token": prefs.getString('token'),
+          "initialDate": setInitialDate.toString(),
+          "lastDate": setLastDate.toString()
+        }));
 
     if (response.statusCode == 200) {
       final parsed = json.decode(response.body);
@@ -56,8 +56,7 @@ class _HistoryState extends State<History> {
       roomCancel = true;
     });
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    http.Response response = await http.post(
-        'http://www.metalmanauto.xyz:2078/cancel_room',
+    http.Response response = await http.post(serverUrl + '/cancel_room',
         headers: {'Content-Type': 'application/json;charset=UTF-8'},
         body:
             jsonEncode({"token": prefs.getString('token'), "roomId": roomId}));
@@ -166,50 +165,52 @@ class _HistoryState extends State<History> {
                                       ? 0
                                       : snapshot.data.length,
                                   itemBuilder: (context, index) {
-                                    Color faintcolour = (snapshot.data[index]
-                                                    .bookingStatus ==
-                                                "RoomCancelled" &&
-                                            snapshot.data[index].payment ==
-                                                "Cancel")
+                                    Color faintcolour = (snapshot.data[index].bookingStatus ==
+                                                "RoomCancelled") ||
+                                            (snapshot.data[index].bookingStatus ==
+                                                    "RoomPreBooked" &&
+                                                snapshot.data[index].payment ==
+                                                    "PAYMENT_FAILED") ||
+                                            (snapshot.data[index].bookingStatus == "RoomBooked" &&
+                                                snapshot.data[index].payment ==
+                                                    "PAYMENT_FAILED")
                                         ? Color(0xffFF5B95)
                                         : (snapshot.data[index].bookingStatus ==
                                                         "RoomPreBooked" &&
-                                                    snapshot.data[index]
-                                                            .payment ==
-                                                        "Pending") ||
-                                                (snapshot.data[index]
-                                                            .bookingStatus ==
+                                                    snapshot.data[index].payment ==
+                                                        "PAYMENT_PENDING") ||
+                                                (snapshot.data[index].bookingStatus ==
                                                         "RoomBooked" &&
-                                                    snapshot.data[index]
-                                                            .payment ==
-                                                        "Pending")
+                                                    snapshot.data[index].payment ==
+                                                        "PAYMENT_PENDING")
                                             ? Color(0xFFFF8A65)
                                             : Color(0xff42E695);
 
-                                    Color darkcolour = (snapshot.data[index]
-                                                    .bookingStatus ==
-                                                "RoomCancelled" &&
-                                            snapshot.data[index].payment ==
-                                                "Cancel")
+                                    Color darkcolour = (snapshot.data[index].bookingStatus ==
+                                                "RoomCancelled") ||
+                                            (snapshot.data[index].bookingStatus ==
+                                                    "RoomPreBooked" &&
+                                                snapshot.data[index].payment ==
+                                                    "PAYMENT_FAILED") ||
+                                            (snapshot.data[index].bookingStatus == "RoomBooked" &&
+                                                snapshot.data[index].payment ==
+                                                    "PAYMENT_FAILED")
                                         ? Color(0xffF8556D)
                                         : (snapshot.data[index].bookingStatus ==
                                                         "RoomPreBooked" &&
-                                                    snapshot.data[index]
-                                                            .payment ==
-                                                        "Pending") ||
-                                                (snapshot.data[index]
-                                                            .bookingStatus ==
+                                                    snapshot.data[index].payment ==
+                                                        "PAYMENT_PENDING") ||
+                                                (snapshot.data[index].bookingStatus ==
                                                         "RoomBooked" &&
-                                                    snapshot.data[index]
-                                                            .payment ==
-                                                        "Pending")
+                                                    snapshot.data[index].payment ==
+                                                        "PAYMENT_PENDING")
                                             ? Color(0xFFFF8A65)
                                             : Color(0xff3BB2B8);
 
                                     return InkWell(
                                       onTap: () {
                                         Future.delayed(
-                                            Duration(milliseconds: 500), () {
+                                            Duration(milliseconds: 1000), () {
                                           Navigator.push(
                                               context,
                                               MaterialPageRoute(
@@ -236,6 +237,12 @@ class _HistoryState extends State<History> {
                                                         checkOutDate: snapshot
                                                             .data[index]
                                                             .roomEndingDay,
+                                                        paymentStatus: snapshot
+                                                            .data[index]
+                                                            .paymentStatus,
+                                                        paytmOrderId: snapshot
+                                                            .data[index]
+                                                            .paytmOrderId,
                                                       )));
                                         });
                                       },
@@ -389,7 +396,7 @@ class _HistoryState extends State<History> {
                                                                         text: 'Room Cancel Successfully',
                                                                         onConfirmBtnTap: () {
                                                                           Future.delayed(
-                                                                              Duration(milliseconds: 500),
+                                                                              Duration(milliseconds: 1000),
                                                                               () {
                                                                             Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => HomePage()),
                                                                                 (Route<dynamic> route) => false);

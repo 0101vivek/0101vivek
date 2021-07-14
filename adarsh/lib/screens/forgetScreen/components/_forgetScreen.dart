@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:adarsh/modals/userLogin.dart';
 import 'package:adarsh/modals/userOtp.dart';
 import 'package:adarsh/screens/HomeBooking/homePage.dart';
@@ -14,6 +15,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_animations/simple_animations.dart';
 
+import '../../../serverUrl.dart';
+
 class ForgetScreen extends StatefulWidget {
   @override
   _ForgetScreenState createState() => _ForgetScreenState();
@@ -26,51 +29,56 @@ class _ForgetScreenState extends State<ForgetScreen> {
   bool isPassword = true;
   OTPModel model = new OTPModel();
 
-  Future sendOtp() async {
+  Future sendOTP() async {
     setState(() {
       isSubmit = true;
     });
-    var url = "http://www.metalmanauto.xyz:2078/send_otp";
-    final http.Response response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json;charset=UTF-8',
-      },
-      body: jsonEncode({
-        'email': model.email,
-        'phoneNo': model.phoneNo,
-      }),
-    );
+    String data = generateOtp();
+    print(data);
+    try {
+      http.Response response = await http.post(
+        serverUrl + '/send_otp',
+        headers: {
+          'Content-Type': 'application/json;charset=UTF-8',
+        },
+        body: jsonEncode({
+          "mobile": model.phoneNo,
+          "name": null,
+          "status": "Forget Password",
+          "otp": data.toString()
+        }),
+      );
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString("OTP", data);
+      setState(() {
+        isSubmit = false;
+      });
+      if (response.statusCode == 200) {
+        navigateotpscreen();
+      } else if (response.statusCode == 404) {
+        showInvalidDataMessage();
+      } else if (response.statusCode == 500) {
+        showSomethingWentWrong();
+      }
+    } catch (e) {}
+  }
 
-    if (response.statusCode == 200) {
-      setState(() {
-        isSubmit = false;
-      });
-      var time = Timer(Duration(seconds: 3), () => "done");
-      time.cancel();
-      navigateotpscreen();
-    } else if (response.statusCode == 404) {
-      setState(() {
-        isSubmit = false;
-      });
-      showInvalidDataMessage();
-    } else if (response.statusCode == 500) {
-      setState(() {
-        isSubmit = false;
-      });
-      showSomethingWentWrong();
+  generateOtp() {
+    Random random = new Random();
+    int r;
+    String otp = "";
+    for (int i = 0; i < 4; i++) {
+      r = 0 + random.nextInt(9 - 0);
+      otp = otp + r.toString();
     }
+    return otp;
   }
 
   navigateotpscreen() {
     Future.delayed(Duration(milliseconds: 500), () {
       Navigator.push(
         context,
-        MaterialPageRoute(
-            builder: (context) => OTPPage(
-                  email: model.email,
-                  phoneNo: model.phoneNo,
-                )),
+        MaterialPageRoute(builder: (context) => OTPPage()),
       );
     });
   }
@@ -79,7 +87,7 @@ class _ForgetScreenState extends State<ForgetScreen> {
     CoolAlert.show(
         context: context,
         type: CoolAlertType.error,
-        title: "Invalid Data",
+        title: "User Not Registered",
         confirmBtnColor: Colors.blue[800]);
   }
 
@@ -192,6 +200,35 @@ class _ForgetScreenState extends State<ForgetScreen> {
                                   key: formKey,
                                   child: Column(
                                     children: <Widget>[
+                                      // Container(
+                                      //   padding: EdgeInsets.all(15),
+                                      //   decoration: BoxDecoration(
+                                      //       border: Border(
+                                      //           bottom: BorderSide(
+                                      //               color: Colors.grey[200]))),
+                                      //   child: TextFormField(
+                                      //     keyboardType:
+                                      //         TextInputType.emailAddress,
+                                      //     onChanged: (String value) {
+                                      //       model.email = value;
+                                      //     },
+                                      //     validator: (String value) {
+                                      //       if (value.isEmpty ||
+                                      //           !RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                                      //               .hasMatch(value)) {
+                                      //         return 'Enter a valid Email!';
+                                      //       }
+                                      //       return null;
+                                      //     },
+                                      //     decoration: InputDecoration(
+                                      //         hintText: "Email",
+                                      //         prefixIcon:
+                                      //             Icon(Icons.email_outlined),
+                                      //         hintStyle:
+                                      //             TextStyle(color: Colors.grey),
+                                      //         border: InputBorder.none),
+                                      //   ),
+                                      // ),
                                       Container(
                                         padding: EdgeInsets.all(15),
                                         decoration: BoxDecoration(
@@ -199,37 +236,7 @@ class _ForgetScreenState extends State<ForgetScreen> {
                                                 bottom: BorderSide(
                                                     color: Colors.grey[200]))),
                                         child: TextFormField(
-                                          keyboardType:
-                                              TextInputType.emailAddress,
-                                          onChanged: (String value) {
-                                            model.email = value;
-                                          },
-                                          validator: (String value) {
-                                            if (value.isEmpty ||
-                                                !RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                                                    .hasMatch(value)) {
-                                              return 'Enter a valid Email!';
-                                            }
-                                            return null;
-                                          },
-                                          decoration: InputDecoration(
-                                              hintText: "Email",
-                                              prefixIcon:
-                                                  Icon(Icons.email_outlined),
-                                              hintStyle:
-                                                  TextStyle(color: Colors.grey),
-                                              border: InputBorder.none),
-                                        ),
-                                      ),
-                                      Container(
-                                        padding: EdgeInsets.all(15),
-                                        decoration: BoxDecoration(
-                                            border: Border(
-                                                bottom: BorderSide(
-                                                    color: Colors.grey[200]))),
-                                        child: TextFormField(
-                                          keyboardType:
-                                              TextInputType.emailAddress,
+                                          keyboardType: TextInputType.phone,
                                           onChanged: (String value) {
                                             model.phoneNo = value;
                                           },
@@ -283,7 +290,7 @@ class _ForgetScreenState extends State<ForgetScreen> {
                                       onPressed: () async {
                                         try {
                                           if (formKey.currentState.validate()) {
-                                            await sendOtp();
+                                            await sendOTP();
                                           } else {
                                             return;
                                           }

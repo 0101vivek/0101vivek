@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:adarsh/serverUrl.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_offline/flutter_offline.dart';
 import 'package:sizer/sizer.dart';
@@ -150,7 +151,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Future fetchLuxuryRooms() async {
     try {
-      final response = await http.get('http://www.metalmanauto.xyz:2078/luxury_room');
+      final response = await http.get(serverUrl + '/luxury_room');
       if (response.statusCode == 200) {
         final parsed = json.decode(response.body);
         var list = parsed['result'] as List;
@@ -165,7 +166,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Future fetchDeluxRooms() async {
     try {
-      final response = await http.get('http://www.metalmanauto.xyz:2078/delux_room');
+      final response = await http.get(serverUrl + '/delux_room');
       if (response.statusCode == 200) {
         final parsed = json.decode(response.body);
         var list = parsed['result'] as List;
@@ -180,8 +181,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Future fetchSuperDeluxRooms() async {
     try {
-      final response =
-          await http.get('http://www.metalmanauto.xyz:2078/super_delux_room');
+      final response = await http.get(serverUrl + '/super_delux_room');
       if (response.statusCode == 200) {
         final parsed = json.decode(response.body);
         var list = parsed['result'] as List;
@@ -287,7 +287,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                       //   child: IconButton(
                                       //       onPressed: () {
                                       //         Future.delayed(
-                                      //             Duration(milliseconds: 500),
+                                      //             Duration(milliseconds: 1000),
                                       //             () {
                                       //           Navigator.push(
                                       //             context,
@@ -329,9 +329,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               ]),
                             ),
                             Container(
-                              height: MediaQuery.of(context).size.height < 640
-                                  ? MediaQuery.of(context).size.height * 2.2
-                                  : MediaQuery.of(context).size.height * 1.5,
+                              height: MediaQuery.of(context).size.height * 1.6,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment: MainAxisAlignment.start,
@@ -374,7 +372,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                                           Future.delayed(
                                                               Duration(
                                                                   milliseconds:
-                                                                      500), () {
+                                                                      1000),
+                                                              () {
                                                             Navigator.push(
                                                               context,
                                                               MaterialPageRoute(
@@ -569,7 +568,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                                           Future.delayed(
                                                               Duration(
                                                                   milliseconds:
-                                                                      500), () {
+                                                                      1000),
+                                                              () {
                                                             Navigator.push(
                                                               context,
                                                               MaterialPageRoute(
@@ -758,7 +758,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                                           Future.delayed(
                                                               Duration(
                                                                   milliseconds:
-                                                                      500), () {
+                                                                      1000),
+                                                              () {
                                                             Navigator.push(
                                                               context,
                                                               MaterialPageRoute(

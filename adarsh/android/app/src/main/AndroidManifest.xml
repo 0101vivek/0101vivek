@@ -2,7 +2,7 @@
     package="com.example.adarsh">
     <uses-permission android:name="android.permission.INTERNET"/>
    <application
-        android:label="adarsh"
+        android:label="Adarsh"
         android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
         <activity

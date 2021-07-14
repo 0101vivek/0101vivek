@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:adarsh/modals/roomBookModel.dart';
-// import 'package:adarsh/screens/ConfirmBookingandMakePayment/ConfirmBookingMakePayment.dart';
-import 'package:adarsh/screens/ConfirmBookingandMakePayment/confirmBookingandMakePayment.dart';
+import 'package:adarsh/screens/ConfirmBookingandMakePayment/ConfirmBookingMakePayment.dart';
+// import 'package:adarsh/screens/ConfirmBookingandMakePayment/confirmBookingandMakePayment.dart';
 import 'package:adarsh/screens/HomeBooking/homePage.dart';
 import 'package:adarsh/screens/Welcome/welcome_screen.dart';
 import 'package:cool_alert/cool_alert.dart';
@@ -177,7 +177,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
     return WillPopScope(
       // ignore: missing_return
       onWillPop: () {
-        Future.delayed(Duration(milliseconds: 500), () {
+        Future.delayed(Duration(milliseconds: 1000), () {
           Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => HomePage()),
               (Route<dynamic> route) => false);
@@ -852,7 +852,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                                 await getNumberOfDays();
                                 await get_total_amount();
                                 if (checkInDate && checkOutDate) {
-                                  Future.delayed(Duration(milliseconds: 500),
+                                  Future.delayed(Duration(milliseconds: 1000),
                                       () {
                                     Navigator.push(
                                         context,

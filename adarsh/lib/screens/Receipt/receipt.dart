@@ -1,17 +1,21 @@
+import 'dart:ui';
+
 import 'package:adarsh/screens/HomeBooking/homePage.dart';
 import 'package:flutter/material.dart';
 
 class Receipt extends StatefulWidget {
-  const Receipt(
-      {Key key,
-      this.roomType,
-      this.startingDay,
-      this.endingDay,
-      this.totalAmount,
-      this.orderId,
-      this.roomNumber,
-      this.totalGuest})
-      : super(key: key);
+  const Receipt({
+    Key key,
+    this.roomType,
+    this.startingDay,
+    this.endingDay,
+    this.totalAmount,
+    this.orderId,
+    this.roomNumber,
+    this.totalGuest,
+    this.paymentOrderId,
+    this.paymentStatus,
+  }) : super(key: key);
 
   final String roomType;
   final String startingDay;
@@ -20,6 +24,9 @@ class Receipt extends StatefulWidget {
   final int roomNumber;
   final int totalGuest;
   final String orderId;
+  final String paymentOrderId;
+  final String paymentStatus;
+
   @override
   _ReceiptState createState() => _ReceiptState();
 }
@@ -165,12 +172,32 @@ class _ReceiptState extends State<Receipt> {
                         padding: EdgeInsets.all(8.0),
                         child: Container(
                             alignment: Alignment.center,
+                            child: Text('Order Id')),
+                      ),
+                      this.widget.paymentOrderId != "Cash"
+                          ? Container(
+                              padding: EdgeInsets.all(8.0),
+                              alignment: Alignment.center,
+                              child: Text(this.widget.paymentOrderId))
+                          : Container(
+                              padding: EdgeInsets.all(8.0),
+                              alignment: Alignment.center,
+                              child: Text("Cash")),
+                    ]),
+                    TableRow(children: [
+                      Container(
+                        padding: EdgeInsets.all(8.0),
+                        child: Container(
+                            alignment: Alignment.center,
                             child: Text('Payment Status')),
                       ),
                       Container(
                           padding: EdgeInsets.all(8.0),
                           alignment: Alignment.center,
-                          child: Text("Pending...")),
+                          child: Text(
+                            this.widget.paymentStatus,
+                            style: TextStyle(fontSize: 10.0),
+                          )),
                     ]),
                   ],
                 ),

@@ -15,6 +15,8 @@ class BookRoomDetailPage extends StatefulWidget {
   final String checkOutDate;
   final String status;
   final String orderId;
+  final String paymentStatus;
+  final String paytmOrderId;
   const BookRoomDetailPage(
       {Key key,
       this.roomId,
@@ -24,7 +26,9 @@ class BookRoomDetailPage extends StatefulWidget {
       this.status,
       this.price,
       this.checkInDate,
-      this.checkOutDate})
+      this.checkOutDate,
+      this.paytmOrderId,
+      this.paymentStatus})
       : super(key: key);
 
   @override
@@ -52,7 +56,7 @@ class _BookRoomDetailPageState extends State<BookRoomDetailPage> {
     return WillPopScope(
       // ignore: missing_return
       onWillPop: () {
-        Future.delayed(Duration(milliseconds: 500), () {
+        Future.delayed(Duration(milliseconds: 1000), () {
           Navigator.of(context).pop();
         });
       },
@@ -278,6 +282,44 @@ class _BookRoomDetailPageState extends State<BookRoomDetailPage> {
                                                   this.widget.checkOutDate)
                                               .year
                                               .toString())),
+                                ]),
+                                TableRow(children: [
+                                  Container(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Container(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          'Payment Order ID'.toUpperCase(),
+                                          style: TextStyle(
+                                              fontSize: 15.0,
+                                              fontWeight: FontWeight.bold),
+                                        )),
+                                  ),
+                                  Container(
+                                      padding: EdgeInsets.all(8.0),
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                          this.widget.paytmOrderId.toString())),
+                                ]),
+                                TableRow(children: [
+                                  Container(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Container(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          'Payment Order ID'.toUpperCase(),
+                                          style: TextStyle(
+                                              fontSize: 15.0,
+                                              fontWeight: FontWeight.bold),
+                                        )),
+                                  ),
+                                  Container(
+                                      padding: EdgeInsets.all(8.0),
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(this
+                                          .widget
+                                          .paymentStatus
+                                          .toString())),
                                 ]),
                               ],
                             ),

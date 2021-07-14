@@ -2,7 +2,6 @@ import 'package:adarsh/screens/HomeBooking/homePage.dart';
 import 'package:adarsh/screens/Login/components/login.dart';
 import 'package:adarsh/screens/Receipt/receipt.dart';
 import 'package:adarsh/screens/Welcome/welcome_screen.dart';
-import 'package:adarsh/screens/payment/paymentScreen.dart';
 import 'package:adarsh/screens/roomDetails/roomDetails.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,7 +24,6 @@ Future<bool> checkLogging() async {
   print(log);
   return log == null ? false : log;
 }
-
 
 class MyApp extends StatelessWidget {
   final Widget home;

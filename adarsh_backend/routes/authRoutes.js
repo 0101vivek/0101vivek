@@ -7,8 +7,6 @@ const authControllers = require('../controllers/authcontrollers');
 router.post('/signup',authControllers.signup_post);
 router.post('/login',authControllers.login_post );
 router.post('/send_otp',authControllers.send_otp );
-router.post('/resend_otp',authControllers.resend_otp);
-router.post('/verify_otp',authControllers.verify_otp);
 router.post('/reset_password',authControllers.reset_password);
 router.post('/getName',authControllers.getName);
 router.get('/luxury_room',authControllers.luxury_room);
@@ -22,7 +20,7 @@ router.post('/user_history',authControllers.user_history);
 router.post('/check_available_book_room',authControllers.check_book_room)
 router.post('/getDetails',authControllers.getDetails);
 router.post('/getDetailsByDate',authControllers.booking_history_by_date);
-// router.post('/generateToken',authControllers.generateToken)
+router.post('/generateToken',authControllers.generateToken)
 // router.post('/transaction_status',authControllers.trans_status)
 
 module.exports = router;

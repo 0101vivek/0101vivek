@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:adarsh/screens/Login/components/login.dart';
 import 'package:adarsh/screens/updateEmailandPhoneNo/updateData.dart';
+import 'package:adarsh/serverUrl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_offline/flutter_offline.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,7 +33,7 @@ class _ProfilePageState extends State<ProfilePage> {
       var token = prefs.getString('token');
       print(token);
       final response = await http.post(
-        'http://www.metalmanauto.xyz:2078/user_history',
+        serverUrl + '/user_history',
         headers: {
           'Content-Type': 'application/json;charset=UTF-8',
         },
@@ -160,7 +161,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       prefs.remove('name');
                                       prefs.remove('isLogin');
                                       Future.delayed(
-                                          Duration(milliseconds: 500), () {
+                                          Duration(milliseconds: 1000), () {
                                         Navigator.of(context)
                                             .pushAndRemoveUntil(
                                                 MaterialPageRoute(

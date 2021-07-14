@@ -32,6 +32,10 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.example.adarsh"
@@ -39,6 +43,7 @@ android {
         targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        multiDexEnabled true
     }
 
     buildTypes {
@@ -56,4 +61,9 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation('com.paytm.appinvokesdk:appinvokesdk:1.5.4'){
+        exclude group: "com.squareup.okhttp3", module: 'okhttp3'        
+    }
+    implementation "com.squareup.okhttp3:okhttp:4.8.0"
+    implementation "androidx.multidex:multidex:2.0.1"
 }

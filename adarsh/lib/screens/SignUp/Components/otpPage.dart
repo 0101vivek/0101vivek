@@ -1,12 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:adarsh/screens/Login/login_screen.dart';
+import 'package:adarsh/screens/SignUp/Components/signup.dart';
 import 'package:adarsh/screens/forgetScreen/components/resetPassword.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter_offline/flutter_offline.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../serverUrl.dart';
 
 final inputBorder = OutlineInputBorder(
   borderRadius: BorderRadius.circular(8.0),
@@ -20,20 +24,37 @@ final inputDecoration = InputDecoration(
   enabledBorder: inputBorder,
 );
 
-String otp = null;
+String otp;
+String num1;
+String num2;
+String num3;
+String num4;
 
 class OTPPage extends StatefulWidget {
-  final String phoneNo;
-  final String otpNo;
-  const OTPPage({Key key, this.phoneNo, this.otpNo}) : super(key: key);
+  final String firstName;
+  final String lastName;
+  final String phoneNumber;
+  final String email;
+  final String password;
+  const OTPPage(
+      {Key key,
+      this.firstName,
+      this.lastName,
+      this.phoneNumber,
+      this.email,
+      this.password})
+      : super(key: key);
   @override
   _OTPPageState createState() => _OTPPageState();
 }
 
 class _OTPPageState extends State<OTPPage> {
-  int minute = 4;
+  int minute = 0;
   int seconds = 59;
   Timer time1;
+  bool isSubmit = false;
+  bool isPassword = true;
+  bool serverError = false;
   // String otpNo;
 
   void initState() {
@@ -41,89 +62,44 @@ class _OTPPageState extends State<OTPPage> {
     setUpTimedForOtp();
   }
 
-  // Future resendOtp() async {
-  //   try {
-  //     var url = "http://www.metalmanauto.xyz:2078/resend_otp";
-  //     final http.Response response = await http.post(
-  //       url,
-  //       headers: {
-  //         'Content-Type': 'application/json;charset=UTF-8',
-  //       },
-  //       body: jsonEncode({'phoneNo': this.widget.phoneNo}),
-  //     );
-  //     var parse = jsonDecode(response.body);
-
-  //     if (response.statusCode == 200) {
-  //       otp = null;
-  //       time1.cancel();
-  //       setUpTimedForOtp();
-  //     } else if (response.statusCode == 500) {
-  //       showSomethingWentWrong();
-  //     }
-  //   } catch (e) {}
-  // }
-
-  showSomethingWentWrong() {
-    CoolAlert.show(
-      context: context,
-      type: CoolAlertType.error,
-      title: "Oops...",
-      text: "Sorry, something went wrong",
-    );
-  }
-
-  Future validateOtp() async {
+  Future resendOtp() async {
+    String data = generateOtp();
+    print(data);
     try {
-      print(otp);
-      var url = "https://vanillacode.tech/verify_otp";
-      final http.Response response = await http.post(
-        url,
+      http.Response response = await http.post(
+        serverUrl + '/send_otp',
         headers: {
           'Content-Type': 'application/json;charset=UTF-8',
         },
-        body: jsonEncode({'phoneNo': this.widget.phoneNo, "otp": otp}),
+        body: jsonEncode({
+          "mobile": this.widget.phoneNumber,
+          "name": this.widget.firstName + " " + this.widget.lastName.toString(),
+          "status": "Sign Up",
+          "otp": data.toString()
+        }),
       );
-
-      if (response.statusCode == 200) {
-        navigatepasswordscreen();
-      } else if (response.statusCode == 404) {
-        showInvalidDataMessage();
-      } else if (response.statusCode == 500) {
-        showSomethingWentWrong();
-      }
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString("OTP", data);
     } catch (e) {}
   }
 
-  navigatepasswordscreen() {
-    Future.delayed(Duration(milliseconds: 500), () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => ResetPassword(
-                  phoneNo: this.widget.phoneNo,
-                )),
-      );
-    });
+  generateOtp() {
+    Random random = new Random();
+    int r;
+    String otp = "";
+    for (int i = 0; i < 4; i++) {
+      r = 0 + random.nextInt(9 - 0);
+      otp = otp + r.toString();
+    }
+    return otp;
   }
 
-  showInvalidDataMessage() {
-    CoolAlert.show(
-      context: context,
-      type: CoolAlertType.error,
-      title: "Wrong Otp".toUpperCase(),
-      confirmBtnColor: Colors.blue[800],
-    );
-  }
+  bool dataSubmitted = false;
 
   setUpTimedForOtp() {
     time1 = Timer.periodic(Duration(seconds: 1), (timer) {
       if (minute == 0 && seconds == 0) {
         time1.cancel();
-      } else if (seconds == 0) {
-        setState(() {
-          seconds = 59;
-          minute = minute - 1;
-        });
       } else {
         setState(() {
           seconds = seconds - 1;
@@ -135,6 +111,49 @@ class _OTPPageState extends State<OTPPage> {
   void dispose() {
     super.dispose();
     time1.cancel();
+  }
+
+  Future signup() async {
+    setState(() {
+      isSubmit = true;
+    });
+    print("Hello");
+
+    http.Response response = await http.post(serverUrl + '/signup',
+        headers: {'Content-Type': 'application/json;charset=UTF-8'},
+        body: jsonEncode({
+          "first_name": this.widget.firstName,
+          "last_name": this.widget.lastName,
+          "mobileno": this.widget.phoneNumber,
+          "email": this.widget.email,
+          "password": this.widget.password,
+          "otpVerified": true
+        }));
+
+    print(response.body);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var parse = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      await prefs.setString("token", parse['token']);
+      setState(() {
+        isSubmit = false;
+        dataSubmitted = true;
+        serverError = false;
+      });
+    } else if (response.statusCode == 409) {
+      await prefs.setString("token", '');
+      setState(() {
+        isSubmit = false;
+        serverError = false;
+      });
+    } else if (response.statusCode == 500) {
+      await prefs.setString("token", '');
+      setState(() {
+        isSubmit = false;
+        serverError = true;
+      });
+    }
   }
 
   @override
@@ -194,25 +213,24 @@ class _OTPPageState extends State<OTPPage> {
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16.0, color: Colors.grey),
               ),
-              // const SizedBox(height: 10.0),
-              // TextButton(
-              //   child: Text(
-              //     "RESEND OTP",
-              //     style: TextStyle(
-              //       color: Colors.blue[600],
-              //       fontSize: 18.0,
-              //       fontWeight: FontWeight.w500,
-              //     ),
-              //   ),
-              //   onPressed: () async {
-              //     setState(() {
-              //       minute = 4;
-              //       seconds = 59;
-              //     });
-              //     setUpTimedForOtp();
-              //     await resendOtp();
-              //   },
-              // ),
+              const SizedBox(height: 10.0),
+              TextButton(
+                child: Text(
+                  "RESEND OTP",
+                  style: TextStyle(
+                    color: Colors.blue[600],
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                onPressed: () async {
+                  setState(() {
+                    minute = 0;
+                    seconds = 59;
+                  });
+                  await resendOtp();
+                },
+              ),
               const SizedBox(height: 30.0),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -229,9 +247,44 @@ class _OTPPageState extends State<OTPPage> {
                   ),
                 ),
                 onPressed: () async {
+                  otp = "" +
+                      num1.toString() +
+                      num2.toString() +
+                      num3.toString() +
+                      num4.toString();
+                  print(otp);
+
                   SharedPreferences prefs =
                       await SharedPreferences.getInstance();
-                  print(prefs.getString('otp'));
+                  var sendOtp = prefs.getString("OTP");
+                  print(sendOtp);
+                  if (otp == sendOtp.toString()) {
+                    await signup();
+                    if (dataSubmitted == true) {
+                      CoolAlert.show(
+                          context: context,
+                          type: CoolAlertType.success,
+                          confirmBtnColor: Colors.blue[800],
+                          title: "Verification Successfully",
+                          onConfirmBtnTap: () async {
+                            SharedPreferences pref =
+                                await SharedPreferences.getInstance();
+                            pref.remove("OTP");
+                            Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                    builder: (context) => Login_Screen()),
+                                (Route<dynamic> route) => false);
+                          });
+                    }
+                  } else {
+                    CoolAlert.show(
+                      context: context,
+                      type: CoolAlertType.error,
+                      confirmBtnColor: Colors.blue[800],
+                      title: "Wrong otp",
+                    );
+                  }
+
                   // if (this.widget.otpNo == otp) {
                   //   CoolAlert.show(
                   //       context: context,
@@ -321,9 +374,9 @@ class _OTPFieldsState extends State<OTPFields> {
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   decoration: inputDecoration,
-                  onChanged: (String value) {
+                  onChanged: (value) {
                     nextField(value, pin2FN);
-                    otp = value;
+                    num1 = value;
                   },
                 ),
               ),
@@ -335,9 +388,9 @@ class _OTPFieldsState extends State<OTPFields> {
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   decoration: inputDecoration,
-                  onChanged: (String value) {
+                  onChanged: (value) {
                     nextField(value, pin3FN);
-                    otp = otp + value;
+                    num2 = value;
                   },
                 ),
               ),
@@ -349,9 +402,9 @@ class _OTPFieldsState extends State<OTPFields> {
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   decoration: inputDecoration,
-                  onChanged: (String value) {
+                  onChanged: (value) {
                     nextField(value, pin4FN);
-                    otp = otp + value;
+                    num3 = value;
                   },
                 ),
               ),
@@ -363,11 +416,11 @@ class _OTPFieldsState extends State<OTPFields> {
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   decoration: inputDecoration,
-                  onChanged: (String value) {
+                  onChanged: (value) {
                     if (value.length == 1) {
                       pin4FN.unfocus();
                     }
-                    otp = otp + value;
+                    num4 = value;
                   },
                 ),
               ),

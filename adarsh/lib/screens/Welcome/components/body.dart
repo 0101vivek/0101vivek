@@ -81,25 +81,12 @@ class _BodyState extends State<Body> {
               RoundButton(
                 text: 'LOGIN',
                 onpresed: () async {
-                  SharedPreferences prefs =
-                      await SharedPreferences.getInstance();
-
-                  if (prefs.getString('token') != null &&
-                      prefs.getString('token') != '') {
-                    Future.delayed(Duration(seconds: 1), () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => HomePage()),
-                      );
-                    });
-                  } else {
-                    Future.delayed(Duration(seconds: 1), () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => Login_Screen()),
-                      );
-                    });
-                  }
+                  Future.delayed(Duration(seconds: 1), () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => Login_Screen()),
+                    );
+                  });
                 },
               ),
               RoundButton(

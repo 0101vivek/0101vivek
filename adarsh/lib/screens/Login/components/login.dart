@@ -6,6 +6,7 @@ import 'package:adarsh/screens/HomeBooking/homePage.dart';
 import 'package:adarsh/screens/SignUp/signupscreen.dart';
 import 'package:adarsh/screens/Welcome/welcome_screen.dart';
 import 'package:adarsh/screens/forgetScreen/components/_forgetScreen.dart';
+import 'package:adarsh/serverUrl.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       isSubmit = true;
     });
-    var url = "http://www.metalmanauto.xyz:2078/login";
+    var url = serverUrl + "/login";
     final http.Response response = await http.post(
       url,
       headers: {
@@ -302,7 +303,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                             print(token);
                                             if (token != "") {
                                               Future.delayed(
-                                                  Duration(milliseconds: 500),
+                                                  Duration(milliseconds: 1500),
                                                   () {
                                                 Navigator.push(
                                                   context,
@@ -354,7 +355,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               1.5,
                               InkWell(
                                 onTap: () {
-                                  Future.delayed(Duration(milliseconds: 500),
+                                  Future.delayed(Duration(milliseconds: 1500),
                                       () {
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
@@ -374,7 +375,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               1.5,
                               InkWell(
                                 onTap: () {
-                                  Future.delayed(Duration(milliseconds: 500),
+                                  Future.delayed(Duration(milliseconds: 1500),
                                       () {
                                     Navigator.of(context).push(
                                       MaterialPageRoute(

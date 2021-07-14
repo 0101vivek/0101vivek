@@ -19,7 +19,8 @@ var schema = new mongoose.Schema({
     roomNumber:Number,
     status:"String",
     BookingStatus:"String",
-    paymentStatus:"String"
+    paymentStatus:"String",
+    paymentOrderId:"String",
 });
 var Room_Booking_schema = mongoose.model("Booking", schema);
 module.exports = {Room_Booking_schema};

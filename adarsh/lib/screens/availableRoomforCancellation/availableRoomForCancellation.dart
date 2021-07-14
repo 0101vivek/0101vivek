@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_offline/flutter_offline.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:adarsh/serverUrl.dart';
 
 class AvailableRoomForCancellation extends StatefulWidget {
   @override
@@ -27,12 +28,12 @@ class _AvailableRoomForCancellationState
 
   Future fetchDetails() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    http.Response response = await http.post(
-        'http://www.metalmanauto.xyz:2078/booking_room_cancellation_history',
-        headers: {'Content-Type': 'application/json;charset=UTF-8'},
-        body: jsonEncode({
-          "token": prefs.getString('token'),
-        }));
+    http.Response response =
+        await http.post(serverUrl + '/booking_room_cancellation_history',
+            headers: {'Content-Type': 'application/json;charset=UTF-8'},
+            body: jsonEncode({
+              "token": prefs.getString('token'),
+            }));
 
     if (response.statusCode == 200) {
       final parsed = json.decode(response.body);
@@ -48,8 +49,7 @@ class _AvailableRoomForCancellationState
       roomCancel = true;
     });
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    http.Response response = await http.post(
-        'https://vanillacode.tech/cancel_room',
+    http.Response response = await http.post(serverUrl + '/cancel_room',
         headers: {'Content-Type': 'application/json;charset=UTF-8'},
         body:
             jsonEncode({"token": prefs.getString('token'), "roomId": roomId}));
@@ -250,7 +250,7 @@ class _AvailableRoomForCancellationState
                                                             Future.delayed(
                                                                 Duration(
                                                                     milliseconds:
-                                                                        500),
+                                                                        1000),
                                                                 () {
                                                               Navigator.push(
                                                                   context,
@@ -349,7 +349,7 @@ class _AvailableRoomForCancellationState
                                                                         text: 'Room Cancel Successfully',
                                                                         onConfirmBtnTap: () {
                                                                           Future.delayed(
-                                                                              Duration(milliseconds: 500),
+                                                                              Duration(milliseconds: 1000),
                                                                               () {
                                                                             Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => HomePage()),
                                                                                 (Route<dynamic> route) => false);

@@ -7,42 +7,42 @@ const schedule = require('node-schedule');
 var jwt = require('jsonwebtoken');
 const jwt_decode = require('jwt-decode');
 const bcrypt = require('bcrypt');
-const Nexmo = require('nexmo');
 const moment = require('moment');
 var nodemailer = require('nodemailer');
 var cron = require('node-cron');
+var uniqid = require('uniqid');
 
 //paytm
 const https = require("https");
 const qs = require("querystring");
-var PaytmChecksum = require("./PaytmChecksum");
+const PaytmChecksum = require("./PaytmChecksum");
 const {v4:uuidv4} = require('uuid');
-
-// configuration for sms
-const nexmo = new Nexmo({
-    apiKey: '69f9d1fd',
-    apiSecret: '9EVu7AcRoPKlH4i8',
-  });
-
 
 //signup
 module.exports.signup_post = async (req, res) => {
-    var {first_name, last_name, mobileno, email, password} = req.body;
+    var {first_name, last_name, mobileno, email, password,otpVerified} = req.body;
+    
+    console.log(first_name)
+    console.log(password)
     try{
-        var salt = await bcrypt.genSalt();
-        password = await bcrypt.hash(password, salt);
-        let user = await User.findOne({email});
+        let user = await User.findOne({mobileno});
         if (user) {
               res.status(409).json({msg: "User already registered"});
         }
-        user = new User({first_name, last_name, mobileno, email, password});
-        await user.save();
-        var token = jwt.sign({id: user.id}, "password");
-          res.status(200).json({token: token, msg: 'User registered'})
+        if(otpVerified == true){
+            var salt = await bcrypt.genSalt();
+            password = await bcrypt.hash(password, salt);
+            user = new User({first_name, last_name, mobileno, email, password});
+            await user.save();
+            var token = jwt.sign({id: user.id}, "password");
+            res.status(200).json({token: token, msg: 'User registered'})
+        }else{
+            res.status(200).json({msg:"Hello"});
+        }
     }catch(err){
+        console.log(err.message)
           res.status(500).json({ msg: 'Server Error Occured'})
     }
-    
 }
 
 //login
@@ -55,6 +55,7 @@ module.exports.login_post = async (req, res) => {
               res.status(404).json({msg:"User not found"});
         }
         var auth = await bcrypt.compare(password, user.password);
+        console.log(auth)
         if (!auth) {
               res.status(409).json({msg:" Invalid data"});
         } else {
@@ -70,121 +71,63 @@ module.exports.login_post = async (req, res) => {
 
 // send OTP
 module.exports.send_otp = async (req, res) => {
-    const {phoneNo} = req.body;
-    try{
-        // let otpNo = generateOTP();
-        let otpNo = '1111';
-        // var salt = await bcrypt.genSalt();
-        // var encryptotpNo = await bcrypt.hash(otpNo, salt);
-        console.log(otpNo);
-        // console.log(encryptotpNo);
-        let user = await User.findOne({mobileno: phoneNo});
-        if(user) {
-            const from = 'Vonage APIs';
-            const to = '91'+phoneNo;
-            const text = 'Your One Time Password is '+otpNo;
-            nexmo.message.sendSms(from, to, text,(err,responseData) => {
-                if (err) {
-                      res.status(500).json({msg:'error occurred'});
-                } else {
-                    if(responseData.messages[0]['status'] === "0") {
-                          res.status(200).json({msg:'message successfully sent',otp:otpNo});
-                    } else {   
-                          res.status(500).json({msg:'message sent unsuccessfully'});
-                    }
-                }
-            });
-        }else{
-              res.status(404).json({msg: "User Not Found"});
-        }
-    }catch(e){
-          res.status(500).json({ msg: 'Server Error Occured'})
-    }
-}
+    var {mobile,name,status,otp}=req.body;
+    console.log(mobile);
 
-function generateOTP(){
-    var otp = "";
-    var digits = "0123456789"
-    for(var i=0;i<4;i++){
-        otp += digits[Math.floor(Math.random() * 10)];
-    }
-    return otp;
-}
-
-// update otp on resend otp
-module.exports.resend_otp = async(req, res) => {
-    const {email,phoneNo} = req.body;
-    try{
-        // let otpNo = generateOTP();
-        let otpNo = '1111';
-        // var salt = await bcrypt.genSalt();
-        // var encryptotpNo = await bcrypt.hash(otpNo, salt);
-        // console.log(otpNo);
-        // console.log(encryptotpNo);
-        // let user = await User.findOne({email,mobileno: phoneNo});
-        if(user){
-            // let otp = await Otp_schema.findOne({email,phoneNo});
-            // var minute = moment().add(5,'minute');
-            // await Otp_schema.updateOne({email,phoneNo},{$set: {otp: encryptotpNo,minute:minute.get('minute'),second:moment().get('second')}},function(err,result){
-                
-            const from = 'Vonage APIs';
-            const to = '91'+phoneNo;
-            const text = 'Your One Time Password is '+otpNo;
-            nexmo.message.sendSms(from, to, text,(err,responseData) => {
-                if (err) {
-                    res.status(500).json({msg:'error occurred'});
-                } else {
-                    if(responseData.messages[0]['status'] === "0") {
-                        res.status(200).json({msg:'otp successfully sent',otp:otpNo});
-                } else {   
-                    res.status(500).json({msg:'otp sent unsuccessfully'});
-                }
-            }
-        });         
-        }
-    }catch(e){
-          res.status(500).json({msg:'Error Occured'});
-    } 
-}
-
-// delete otp after 5 min
-// schedule.scheduleJob('*/1 * * * * *',async(timer) =>{
-//     await Otp_schema.deleteMany({minute:timer.getMinutes(),second:timer.getSeconds()},function(err,result){
-//         if(result){
-//             // console.log("Otp delete successfully");
-//         }
-//     })
-// });
-
-// verify otp
-module.exports.verify_otp = async(req,res) => {
-    const {email,phoneNo,otp} = req.body;
-    try{
-        await Otp_schema.findOne({email,phoneNo},function(err,result){
+    if(status == 'Forget Password'){
+        await User.findOne({mobileno:mobile}, function(err,result){
             if(err){
-                  res.status(500).json({msg:"Error Occured"});
+                res.status(500).json({msg:"Something went wrong"})
             }
-            if(result){
-                if(bcrypt.compare(otp, result.otp) === true){
-                      res.status(200).json({msg:"Otp Validated Successfully"})
-                }else{
-                      res.status(404).json({msg:"Wrong otp entered"});
-                }
+            if(!result){
+                res.status(404).json({msg:"User Not Registered"})
             }
-        });
-    }catch(e){
-          res.status(500).json({msg:'Error Occured'});
+            name = result.first_name+" "+result.last_name
+        })
     }
+    
+    var options = {
+        "method": "POST",
+        "hostname": "api.msg91.com",
+        "port": null,
+        "path": "/api/v5/flow/",
+        "headers": {
+            "authkey": "363393AI3QWHYx5j60d9f225P1",
+            "content-type": "application/JSON"
+        }
+    };
+	
+    var request = https.request(options, function (response) {
+        var chunks = [];
+
+        response.on("data", function (chunk) {
+            chunks.push(chunk);
+        });
+
+        response.on("end", function () {
+            var body = Buffer.concat(chunks);
+            res.send(body);
+        });
+    });
+    request.write(`{\n  \"flow_id\": \"60df5ff58269ea3c0663e467\",\n  \"sender\": \"YOURIN\",\n  \"mobiles\":
+     \"91${mobile}\",\n  \"name\":\"${name}\",\n  \"status\":\"${status}\",\n  \"otp\":\"${otp}\"\n\n}`);
+    request.end();
+
 }
+
 
 
 // reset password
 module.exports.reset_password = async(req, res) => {
-    let {email,phoneNo,password} = req.body;
+    let {phoneNo,password} = req.body;
     try{
+        console.log(password)
         var salt = await bcrypt.genSalt();
+        // await User.findOne({mobileno: phoneNo}, function(err,result){
+        //     console.log(result)
+        // })
         password = await bcrypt.hash(password, salt);
-        await User.updateOne({email: email, mobileno: phoneNo}, {$set:{password: password}},function(err,result){
+        await User.updateOne({mobileno: phoneNo}, {$set:{password: password}},function(err,result){
             if(err){
                   res.status(500).json({msg:"Error Occured"});
             }
@@ -286,16 +229,21 @@ cron.schedule('00 11 * * *', async() => {
 
     await Room_Booking_schema.updateMany({startDate:{$lt:new Date()},status:'pre-booked',BookingStatus:'RoomPreBooked'},{$set:{status:'Booked',BookingStatus:'RoomBooked'}})
 
+    }catch{}
+});
+
+
+cron.schedule('15 12 * * *', async() => {
+    try{
     var result2 = await Room_Booking_schema.find({startDate:{$gte:new Date()},status:'pre-booked',BookingStatus:'RoomPreBooked'})
         result2.map(async result => {
             var date = new Date(result2['startDate'])
             date = date.getDate()+"-"+(date.getMonth()+1)+"-"+date.getFullYear()
             await Room_schema.updateMany({_id:result['roomid']},{$set:{status:'pre-booked',startDate:date}});
     })
-    
-    await Room_Booking_schema.updateMany({startDate:{$lt:new Date()},status:'pre-booked',BookingStatus:'RoomPreBooked'},{$set:{status:'Booked',BookingStatus:'RoomBooked',payment:'Pending'}})
     }catch{}
 });
+
 
 
 // check room is booked
@@ -331,7 +279,7 @@ function generateRandomString(){
 
 // book Room
 module.exports.book_room = async (req, res) => {
-    let {token,roomId,startDate,endDate,Amount,documentName,documentType,roomType,roomNumber} = req.body;
+    let {token,roomId,startDate,endDate,Amount,documentName,documentType,roomType,roomNumber,paymentStatus,paymentOrderId} = req.body;
     var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
     try{
     console.log(token);
@@ -352,7 +300,7 @@ module.exports.book_room = async (req, res) => {
 
     let book_room ;
     if(date.getHours()>=11 &&  now.getDate() == date.getDate()){
-        book_room = new Room_Booking_schema({userId:id,roomid:roomId,startDate,Name:userData.first_name+" "+userData.last_name,Phone:userData.mobileno,endDate,Amount,documentName,documentType,roomNumber,roomType,status:'Booked',BookingStatus:"RoomBooked",payment:"Pending"}); 
+        book_room = new Room_Booking_schema({userId:id,roomid:roomId,startDate,Name:userData.first_name+" "+userData.last_name,Phone:userData.mobileno,endDate,Amount,documentName,documentType,roomNumber,roomType,status:'Booked',BookingStatus:"RoomBooked",paymentStatus,paymentOrderId}); 
         book_room.save().then((success)=>{
             if(success){
                 Room_schema.updateOne({_id: roomId},{$set:{startDate:date.getDate()+"-"+(date.getMonth()+1)+"-"+date.getFullYear(),status:'Booked'}},function(err,result){
@@ -366,7 +314,7 @@ module.exports.book_room = async (req, res) => {
             }
         })
     }else{
-        book_room = new Room_Booking_schema({userId:id,roomid:roomId,startDate,Name:userData.first_name+" "+userData.last_name,Phone:userData.mobileno,endDate,Amount,documentName,documentType,roomNumber,roomType,status:'pre-booked',BookingStatus:"RoomPreBooked",payment:"Pending"}); 
+        book_room = new Room_Booking_schema({userId:id,roomid:roomId,startDate,Name:userData.first_name+" "+userData.last_name,Phone:userData.mobileno,endDate,Amount,documentName,documentType,roomNumber,roomType,status:'pre-booked',BookingStatus:"RoomPreBooked",paymentStatus,paymentOrderId}); 
         book_room.save().then((success)=>{
             if(success){
                 console.log(date.getDate()+"-"+date.getMonth()+"-"+date.getFullYear())
@@ -434,42 +382,42 @@ async function sendEmailForRoomBookedSuccessfully(userId,orderId,checkInDate,che
 
 
 // function send sms for successfully room booking
-async function sendSMSForSuccessFullyBooking(userId,orderId,checkInDate,checkInMonth,chekOutDate,checkOutMonth,roomType,amount){
-    try{
-        const from = 'Vonage APIs';
-        const to = '91'+phoneNo;
-        const text = `Dear Customer, 
-        <br/>
-        your booking ID `+orderId+` has now been confirmed. We look forward to hosting you and hope you enjoy your stay.
-        <br/>
-        <br/>
-        <h3>Hotel name : MetalMan hotel<br/>
-       Check-in :, 11:00 AM onwards<br/>
-        Check-out :,till 12:00 PM<br/>
-        Room Type :,<br/>
-        Address : MIDC, Aurangabad<br/>
-        Reception : +911234567890<br/>
-        Map Link : https://bit.ly/34GZJKj<br/></h3>
+// async function sendSMSForSuccessFullyBooking(userId,orderId,checkInDate,checkInMonth,chekOutDate,checkOutMonth,roomType,amount){
+//     try{
+//         const from = 'Vonage APIs';
+//         const to = '91'+phoneNo;
+//         const text = `Dear Customer, 
+//         <br/>
+//         your booking ID `+orderId+` has now been confirmed. We look forward to hosting you and hope you enjoy your stay.
+//         <br/>
+//         <br/>
+//         <h3>Hotel name : MetalMan hotel<br/>
+//        Check-in :, 11:00 AM onwards<br/>
+//         Check-out :,till 12:00 PM<br/>
+//         Room Type :,<br/>
+//         Address : MIDC, Aurangabad<br/>
+//         Reception : +911234567890<br/>
+//         Map Link : https://bit.ly/34GZJKj<br/></h3>
      
-        You can check-in using any government issued ID and address proof of any local or outstation address. Do carry your original (Photocopy not accepted) ID with you, for cross verification.
-        <br/>
-        Thanks`;
+//         You can check-in using any government issued ID and address proof of any local or outstation address. Do carry your original (Photocopy not accepted) ID with you, for cross verification.
+//         <br/>
+//         Thanks`;
         
-        nexmo.message.sendSms(from, to, text,(err,responseData) => {
-        if (err) {
+//         nexmo.message.sendSms(from, to, text,(err,responseData) => {
+//         if (err) {
             
-        } else {
-            if(responseData.messages[0]['status'] === "0") {
-                console.log("Message sent successfully")
-            } else {   
-                console.log("Message sent unsuccessfully")
-                }
-            }
-        }); 
-    }catch(e){
-        // return 500;
-    }
-}
+//         } else {
+//             if(responseData.messages[0]['status'] === "0") {
+//                 console.log("Message sent successfully")
+//             } else {   
+//                 console.log("Message sent unsuccessfully")
+//                 }
+//             }
+//         }); 
+//     }catch(e){
+//         // return 500;
+//     }
+// }
 
 module.exports.booking_history_by_date = async(req,res) => {
     var {token,initialDate,lastDate} = req.body;
@@ -659,98 +607,85 @@ module.exports.getDetails = async(req,res) => {
 
 
 
-// module.exports.generateToken = (req,res) => {
+module.exports.generateToken = (req,res) => {
 
-//     const {amount,email,mobile,paymentOption} = req.body;
-//     console.log(email)                                                                                      
-//     var paytmParams = {};
-    
-//     var orderId = uuidv4();
-//     orderId = "ORDER_ID"+orderId;
+    const {amount,email,mobile} = req.body;
+    console.log(email)                                                                                      
+    var paytmParams = {};
+    var orderId = uniqid();
+    orderId = "ORDER_ID"+orderId;
 
-//     var customId = uuidv4();
-//     customId = "custId_"+customId;
+    var customId = uuidv4();
+    customId = "custId_"+customId;
 
-//     paytmParams.body = {
-//         "requestType"   : "Payment",
-//         "mid"           : "",
-//         "websiteName"   : "WEBSTAGING",
-//         "orderId"       : orderId,
-//         "callbackUrl"   : "https://merchant.com/callback",
-//         "txnAmount"     : {
-//             "value"     : amount,
-//             "currency"  : "INR",
-//         },
-//         "userInfo"      : {
-//             "custId"    : customId,
-//             "email":email,
-//             "mobile": mobile
-//         },
-//     };
+    paytmParams.body = {
+        "requestType"   : "Payment",
+        "mid"           : "ycnaiy48639994765108",
+        "websiteName"   : "WEBSTAGING",
+        "orderId"       : orderId,
+        "callbackUrl"   : `https://securegw-stage.paytm.in/theia/paytmCallback?mid=ycnaiy48639994765108&ORDER_ID=` + orderId,
+        "txnAmount"     : {
+            "value"     : amount,
+            "currency"  : "INR",
+        },
+        "userInfo"      : {
+            "custId"    : customId,
+            "email":email,
+            "mobile": mobile
+        },
+    };
 
-//     if(paymentOption == 0){
-//         paytmParams.body[
-//             "enablePaymentMode"] = [{
-//             "mode": "UPI",
-//         }]
-//     }else if(paymentOption == 1){
-//         paytmParams.body[
-//             "enablePaymentMode"] = [{
-//             "mode": "NET_BANKING",
-//         }]
-//     }else if(paymentOption == 2){
-//         paytmParams.body[
-//             "enablePaymentMode"] = [{
-//             "mode": "CREDIT_CARD",
-//         }]
-//     }else if(paymentOption == 3){
-//         paytmParams.body[
-//             "enablePaymentMode"] = [{
-//             "mode": "DEBIT_CARD",
-//         }]
-//     }
+        
+    paytmParams.body[
+        "disablePaymentMode"] = [{
+        "mode": "CREDIT_CARD",
+    }]
+    paytmParams.body[
+        "disablePaymentMode"] = [{
+        "mode": "DEBIT_CARD",
+    }]
+  
 
-               
-//     PaytmChecksum.generateSignature(JSON.stringify(paytmParams.body), "").then(function(checksum){
+    PaytmChecksum.generateSignature(JSON.stringify(paytmParams.body), "&N%Nbwkmeqa9!ZS4").then(function(checksum){
 
-//         paytmParams.head = {
-//             "signature"    : checksum
-//         };
+        paytmParams.head = {
+            "signature"    : checksum
+        };
 
-//         var post_data = JSON.stringify(paytmParams);
+        var post_data = JSON.stringify(paytmParams);
 
-//         var options = {
+        var options = {
 
-//             /* for Staging */
-//             hostname: 'securegw-stage.paytm.in',
+            /* for Staging */
+            hostname: 'securegw-stage.paytm.in',
 
-//             /* for Production */
-//             // hostname: 'securegw.paytm.in',
+            /* for Production */
+            // hostname: 'securegw.paytm.in',
 
-//             port: 443,
-//             path: '/theia/api/v1/initiateTransaction?mid=ycnaiy48639994765108&orderId='+orderId,
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//                 'Content-Length': post_data.length
-//             }
-//         };
+            port: 443,
+            path: '/theia/api/v1/initiateTransaction?mid=ycnaiy48639994765108&orderId='+orderId,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': post_data.length
+            }
+        };
 
-//         var response = "";
-//         var post_req = https.request(options, function(post_res) {
-//             post_res.on('data', function (chunk) {
-//                 response += chunk;
-//             });
+        var response = "";
+        var post_req = https.request(options, function(post_res) {
+            post_res.on('data', function (chunk) {
+                response += chunk;
+            });
 
-//             post_res.on('end', function(){
-//                 console.log('Response: ', response);
-//                 response = JSON.parse(response);
-//                   res.json({txnToken:response.body.txnToken,orderId:orderId});
-//             });
-//         });
+            post_res.on('end', function(){
+                console.log('Response: ', response);
+                response = JSON.parse(response);
+                res.status(200).json({txnToken:response.body.txnToken,orderId:orderId});
+            });
+        });
 
-//         post_req.write(post_data);
-//         post_req.end();
-//     });
-// }
+        post_req.write(post_data);
+        post_req.end();
+    });
+}
 

@@ -14,11 +14,12 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_animations/simple_animations.dart';
 
+import '../../../serverUrl.dart';
+
 class ResetPassword extends StatefulWidget {
-  final String email;
   final String phoneNo;
 
-  const ResetPassword({Key key, this.email, this.phoneNo}) : super(key: key);
+  const ResetPassword({Key key, this.phoneNo}) : super(key: key);
   @override
   _ResetPasswordState createState() => _ResetPasswordState();
 }
@@ -36,24 +37,18 @@ class _ResetPasswordState extends State<ResetPassword> {
     setState(() {
       isSubmit = true;
     });
-    var url = "http://www.metalmanauto.xyz:2078/reset_password";
+    var url = serverUrl + "/reset_password";
     final http.Response response = await http.post(
       url,
       headers: {
         'Content-Type': 'application/json;charset=UTF-8',
       },
-      body: jsonEncode({
-        'email': this.widget.email,
-        'phoneNo': this.widget.phoneNo,
-        'password': password1
-      }),
+      body: jsonEncode({'phoneNo': this.widget.phoneNo, 'password': password1}),
     );
     print(response.statusCode);
 
     if (response.statusCode == 200) {
-      var time = Timer(Duration(seconds: 3), () => "done");
-      time.cancel();
-      navigateloginscreen();
+      showSuccess();
     } else {
       showSomethingWentWrong();
     }
@@ -61,6 +56,20 @@ class _ResetPasswordState extends State<ResetPassword> {
     setState(() {
       isSubmit = false;
     });
+  }
+
+  showSuccess() {
+    CoolAlert.show(
+        context: context,
+        type: CoolAlertType.success,
+        // title: "Oops...",
+        text: "Password Updated Successfully",
+        onCancelBtnTap: () {
+          navigateloginscreen();
+        },
+        onConfirmBtnTap: () {
+          navigateloginscreen();
+        });
   }
 
   navigateloginscreen() {
@@ -196,7 +205,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                                           validator: (String value) {
                                             if (value.isEmpty ||
                                                     value.length <
-                                                        8 /*||
+                                                        6 /*||
                         !RegExp(r'^(?=.*?[a-z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[.!@#\$&*~]).{8,}$')
                             .hasMatch(value)*/
                                                 ) {
@@ -242,7 +251,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                                             if (value.isEmpty ||
                                                     password != password1 ||
                                                     value.length <
-                                                        8 /*||
+                                                        6 /*||
                         !RegExp(r'^(?=.*?[a-z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[.!@#\$&*~]).{8,}$')
                             .hasMatch(value)*/
                                                 ) {
