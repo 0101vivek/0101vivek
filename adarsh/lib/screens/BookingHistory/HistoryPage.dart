@@ -216,6 +216,8 @@ class _HistoryState extends State<History> {
                                               MaterialPageRoute(
                                                   builder: (context) =>
                                                       BookRoomDetailPage(
+                                                        image: snapshot
+                                                            .data[index].image,
                                                         orderId: snapshot
                                                             .data[index]
                                                             .orderId,

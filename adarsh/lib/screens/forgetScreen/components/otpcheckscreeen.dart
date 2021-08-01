@@ -37,7 +37,7 @@ class OTPPage extends StatefulWidget {
 }
 
 class _OTPPageState extends State<OTPPage> {
-  int minute = 4;
+  int minute = 0;
   int seconds = 59;
   Timer time1;
 
@@ -111,6 +111,7 @@ class _OTPPageState extends State<OTPPage> {
   setUpTimedForOtp() {
     time1 = Timer.periodic(Duration(seconds: 1), (timer) {
       if (minute == 0 && seconds == 0) {
+        clearOtp();
         time1.cancel();
       } else {
         setState(() {
@@ -118,6 +119,11 @@ class _OTPPageState extends State<OTPPage> {
         });
       }
     });
+  }
+
+  void clearOtp() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove("OTP");
   }
 
   void dispose() {

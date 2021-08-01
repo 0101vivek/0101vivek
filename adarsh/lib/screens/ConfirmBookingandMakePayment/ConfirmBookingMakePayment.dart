@@ -23,12 +23,14 @@ class ConfirmOrderPage extends StatefulWidget {
   final String endingDay;
   final int totalAmount;
   final int roomNumber;
+  final String image;
   final String description;
 
   const ConfirmOrderPage({
     Key key,
     this.roomId,
     this.roomNumber,
+    this.image,
     this.totalAmount,
     this.startingDay,
     this.description,
@@ -104,6 +106,7 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
           "roomNumber": widget.roomNumber,
           "paymentOrderId": null,
           "paymentStatus": "PAYMENT_PENDING",
+          "image": this.widget.image
           // "totalGuest": widget.totalGuest,
           // "description": widget.description
         }));
@@ -123,8 +126,13 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
     }
   }
 
+  void showInSnackBar(String value) {
+    Scaffold.of(context).showSnackBar(new SnackBar(content: new Text(value)));
+  }
+
   @override
   Widget build(BuildContext context) {
+    // showInSnackBar("Some text");
     return OfflineBuilder(
       debounceDuration: Duration.zero,
       connectivityBuilder: (
@@ -442,28 +450,38 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
                 ),
                 title: Text("Paytm"),
                 onTap: () async {
-                  http.Response response = await checkRoomAvailable();
-                  print(response.statusCode);
-                  if (formKey.currentState.validate() &&
-                      response.statusCode == 200) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => PaytmApp(
-                                roomId: this.widget.roomId,
-                                roomType: this.widget.roomType,
-                                startingDay: this.widget.startingDay,
-                                endingDay: this.widget.endingDay,
-                                description: this.widget.description,
-                                totalAmount: this.widget.totalAmount,
-                                roomNumber: this.widget.roomNumber,
-                                documentNumber: documentNumber,
-                                documentType: documentType,
-                              )),
-                    );
+                  if (formKey.currentState.validate()) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                          'Currently online payment option in not available'),
+                    ));
                   } else {
                     return;
                   }
+
+                  // http.Response response = await checkRoomAvailable();
+                  // print(response.statusCode);
+                  // if (formKey.currentState.validate() &&
+                  //     response.statusCode == 200) {
+                  //   Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(
+                  //         builder: (context) => PaytmApp(
+                  // roomId: this.widget.roomId,
+                  // image:this.widget.image,
+                  //               roomType: this.widget.roomType,
+                  //               startingDay: this.widget.startingDay,
+                  //               endingDay: this.widget.endingDay,
+                  //               description: this.widget.description,
+                  //               totalAmount: this.widget.totalAmount,
+                  //               roomNumber: this.widget.roomNumber,
+                  //               documentNumber: documentNumber,
+                  //               documentType: documentType,
+                  //             )),
+                  //   );
+                  // } else {
+                  //   return;
+                  // }
                 },
                 trailing: Icon(Icons.arrow_forward_ios),
               ),

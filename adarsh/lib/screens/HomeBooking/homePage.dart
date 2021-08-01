@@ -378,6 +378,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                                               context,
                                                               MaterialPageRoute(
                                                                   builder: (context) => RoomDetailPage(
+                                                                      image: snapshot
+                                                                          .data[
+                                                                              index]
+                                                                          .image,
                                                                       description: snapshot
                                                                           .data[
                                                                               index]
@@ -440,8 +444,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                                                     Container(
                                                                   decoration: BoxDecoration(
                                                                       image: DecorationImage(
-                                                                          image: NetworkImage(
-                                                                              'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500'),
+                                                                          image: NetworkImage(snapshot
+                                                                              .data[
+                                                                                  index]
+                                                                              .image
+                                                                              .toString()),
                                                                           fit: BoxFit
                                                                               .cover),
                                                                       borderRadius: BorderRadius.only(
@@ -574,6 +581,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                                               context,
                                                               MaterialPageRoute(
                                                                   builder: (context) => RoomDetailPage(
+                                                                      image: snapshot
+                                                                          .data[
+                                                                              index]
+                                                                          .image
+                                                                          .toString(),
                                                                       description: snapshot
                                                                           .data[
                                                                               index]
@@ -636,8 +648,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                                                     Container(
                                                                   decoration: BoxDecoration(
                                                                       image: DecorationImage(
-                                                                          image: NetworkImage(
-                                                                              'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500'),
+                                                                          image: NetworkImage(snapshot
+                                                                              .data[
+                                                                                  index]
+                                                                              .image
+                                                                              .toString()),
                                                                           fit: BoxFit
                                                                               .cover),
                                                                       borderRadius: BorderRadius.only(
@@ -764,6 +779,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                                               context,
                                                               MaterialPageRoute(
                                                                   builder: (context) => RoomDetailPage(
+                                                                      image: snapshot
+                                                                          .data[
+                                                                              index]
+                                                                          .image
+                                                                          .toString(),
                                                                       description: snapshot
                                                                           .data[
                                                                               index]
@@ -826,8 +846,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                                                     Container(
                                                                   decoration: BoxDecoration(
                                                                       image: DecorationImage(
-                                                                          image: NetworkImage(
-                                                                              'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500'),
+                                                                          image: NetworkImage(snapshot
+                                                                              .data[
+                                                                                  index]
+                                                                              .image
+                                                                              .toString()),
                                                                           fit: BoxFit
                                                                               .cover),
                                                                       borderRadius: BorderRadius.only(

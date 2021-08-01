@@ -13,6 +13,7 @@ class BookRoomDetailPage extends StatefulWidget {
   final int roomNumber;
   final String checkInDate;
   final String checkOutDate;
+  final String image;
   final String status;
   final String orderId;
   final String paymentStatus;
@@ -21,6 +22,7 @@ class BookRoomDetailPage extends StatefulWidget {
       {Key key,
       this.roomId,
       this.orderId,
+      this.image,
       this.roomType,
       this.roomNumber,
       this.status,
@@ -91,8 +93,7 @@ class _BookRoomDetailPageState extends State<BookRoomDetailPage> {
                   height: 400,
                   decoration: BoxDecoration(
                       image: DecorationImage(
-                          image: NetworkImage(
-                              'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500'),
+                          image: NetworkImage(this.widget.image.toString()),
                           fit: BoxFit.cover),
                       borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(16),
@@ -230,11 +231,9 @@ class _BookRoomDetailPageState extends State<BookRoomDetailPage> {
                                   Container(
                                       padding: EdgeInsets.all(8.0),
                                       alignment: Alignment.centerLeft,
-                                      child: Text((DateTime.parse(this
-                                                          .widget
-                                                          .checkInDate)
-                                                      .day +
-                                                  1)
+                                      child: Text((DateTime.parse(
+                                                      this.widget.checkInDate)
+                                                  .day)
                                               .toString() +
                                           " " +
                                           month[DateTime.parse(this
@@ -264,11 +263,9 @@ class _BookRoomDetailPageState extends State<BookRoomDetailPage> {
                                   Container(
                                       padding: EdgeInsets.all(8.0),
                                       alignment: Alignment.centerLeft,
-                                      child: Text((DateTime.parse(this
-                                                          .widget
-                                                          .checkOutDate)
-                                                      .day +
-                                                  1)
+                                      child: Text((DateTime.parse(
+                                                      this.widget.checkOutDate)
+                                                  .day)
                                               .toString() +
                                           " " +
                                           month[DateTime.parse(this
@@ -283,44 +280,88 @@ class _BookRoomDetailPageState extends State<BookRoomDetailPage> {
                                               .year
                                               .toString())),
                                 ]),
-                                TableRow(children: [
-                                  Container(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Container(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          'Payment Order ID'.toUpperCase(),
-                                          style: TextStyle(
-                                              fontSize: 15.0,
-                                              fontWeight: FontWeight.bold),
-                                        )),
-                                  ),
-                                  Container(
-                                      padding: EdgeInsets.all(8.0),
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                          this.widget.paytmOrderId.toString())),
-                                ]),
-                                TableRow(children: [
-                                  Container(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Container(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          'Payment Order ID'.toUpperCase(),
-                                          style: TextStyle(
-                                              fontSize: 15.0,
-                                              fontWeight: FontWeight.bold),
-                                        )),
-                                  ),
-                                  Container(
-                                      padding: EdgeInsets.all(8.0),
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(this
-                                          .widget
-                                          .paymentStatus
-                                          .toString())),
-                                ]),
+                                this.widget.paytmOrderId != null
+                                    ? TableRow(children: [
+                                        Container(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Container(
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(
+                                                'Payment Order ID'
+                                                    .toUpperCase(),
+                                                style: TextStyle(
+                                                    fontSize: 15.0,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              )),
+                                        ),
+                                        Container(
+                                            padding: EdgeInsets.all(8.0),
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(this
+                                                .widget
+                                                .paytmOrderId
+                                                .toString())),
+                                      ])
+                                    : TableRow(children: [
+                                        Container(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Container(
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(
+                                                'Payment Order ID'
+                                                    .toUpperCase(),
+                                                style: TextStyle(
+                                                    fontSize: 15.0,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              )),
+                                        ),
+                                        Container(
+                                            padding: EdgeInsets.all(8.0),
+                                            alignment: Alignment.centerLeft,
+                                            child: Text("Empty")),
+                                      ]),
+                                this.widget.status == 'RoomCancelled'
+                                    ? TableRow(children: [
+                                        Container(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Container(
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(
+                                                'Payment Status '.toUpperCase(),
+                                                style: TextStyle(
+                                                    fontSize: 15.0,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              )),
+                                        ),
+                                        Container(
+                                            padding: EdgeInsets.all(8.0),
+                                            alignment: Alignment.centerLeft,
+                                            child: Text("Payment Cancelled")),
+                                      ])
+                                    : TableRow(children: [
+                                        Container(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Container(
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(
+                                                'Payment Status '.toUpperCase(),
+                                                style: TextStyle(
+                                                    fontSize: 15.0,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              )),
+                                        ),
+                                        Container(
+                                            padding: EdgeInsets.all(8.0),
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(this
+                                                .widget
+                                                .paymentStatus
+                                                .toString())),
+                                      ]),
                               ],
                             ),
                           ),

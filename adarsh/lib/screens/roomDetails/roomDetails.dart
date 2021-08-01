@@ -20,6 +20,7 @@ class RoomDetailPage extends StatefulWidget {
   final String roomStartDate;
   final String description;
   final String preBooked;
+  final String image;
 
   const RoomDetailPage(
       {Key key,
@@ -29,7 +30,8 @@ class RoomDetailPage extends StatefulWidget {
       this.roomType,
       this.roomNumber,
       /* this.name, this.location*/ this.description,
-      this.price})
+      this.price,
+      this.image})
       : super(key: key);
 
   @override
@@ -217,8 +219,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                   height: 400,
                   decoration: BoxDecoration(
                       image: DecorationImage(
-                          image: NetworkImage(
-                              'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500'),
+                          image: NetworkImage(this.widget.image.toString()),
                           fit: BoxFit.cover),
                       borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(16),
@@ -859,6 +860,7 @@ class _RoomDetailPageState extends State<RoomDetailPage> {
                                         MaterialPageRoute(
                                             builder: (context) =>
                                                 ConfirmOrderPage(
+                                                  image: this.widget.image,
                                                   roomId: widget.roomId,
                                                   // description:
                                                   //     widget.description,

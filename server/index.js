@@ -11,7 +11,6 @@ app.use(express.json({ extended: false }));
 
 app.use(cors())
 app.get('/', (req, res) => {
-    console.log(req.get('host'));
     res.send('Hello World!')
 })
 

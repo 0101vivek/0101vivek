@@ -18,10 +18,12 @@ class PaytmApp extends StatefulWidget {
   final String description;
   final String documentType;
   final String documentNumber;
+  final String image;
 
   const PaytmApp(
       {Key key,
       this.roomId,
+      this.image,
       this.roomType,
       this.startingDay,
       this.endingDay,
@@ -194,6 +196,7 @@ class _PaytmAppState extends State<PaytmApp> {
           "roomType": widget.roomType,
           "roomNumber": widget.roomNumber,
           "paymentOrderId": orderId,
+          "image": this.widget.image,
           "paymentStatus": (obj.status == "TXN_SUCCESS")
               ? "PAYMENT_SUCCESSFUL"
               : (obj.status == "TXN_FAILURE")

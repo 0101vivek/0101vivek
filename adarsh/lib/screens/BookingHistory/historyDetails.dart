@@ -23,6 +23,7 @@ class Details {
   final String orderId;
   final int totalAmount;
   final int roomNumber;
+  final String image;
   final String roomType;
   final String status;
   final String bookingStatus;
@@ -32,6 +33,7 @@ class Details {
 
   Details(
       {this.userId,
+      this.image,
       this.orderId,
       this.payment,
       this.roomId,
@@ -48,6 +50,7 @@ class Details {
   factory Details.fromJson(Map<String, dynamic> json) {
     return Details(
         userId: json['userId'] as String,
+        image: json['image'] as String,
         roomId: json['roomid'] as String,
         roomBookingDay: json['startDate'] as String,
         roomEndingDay: json['endDate'] as String,

@@ -4,6 +4,7 @@ import 'package:adarsh/modals/userLogin.dart';
 import 'package:adarsh/modals/userOtp.dart';
 import 'package:adarsh/screens/HomeBooking/homePage.dart';
 import 'package:adarsh/screens/Login/components/login.dart';
+import 'package:adarsh/screens/Login/login_screen.dart';
 import 'package:adarsh/screens/Welcome/welcome_screen.dart';
 import 'package:adarsh/screens/forgetScreen/components/otpcheckscreeen.dart';
 import 'package:cool_alert/cool_alert.dart';
@@ -121,7 +122,7 @@ class _ResetPasswordState extends State<ResetPassword> {
         onWillPop: () {
           Future.delayed(Duration(milliseconds: 500), () {
             Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => WelcomeScreen()),
+                MaterialPageRoute(builder: (context) => Login_Screen()),
                 (Route<dynamic> route) => false);
           });
         },
