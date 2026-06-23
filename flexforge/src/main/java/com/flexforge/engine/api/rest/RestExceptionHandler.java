@@ -1,6 +1,8 @@
 package com.flexforge.engine.api.rest;
 
+import com.flexforge.engine.error.ForbiddenException;
 import com.flexforge.engine.error.NotFoundException;
+import com.flexforge.engine.error.UnauthenticatedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -21,6 +23,16 @@ public class RestExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> badRequest(IllegalArgumentException e) {
         return body(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(UnauthenticatedException.class)
+    public ResponseEntity<Map<String, Object>> unauthenticated(UnauthenticatedException e) {
+        return body(HttpStatus.UNAUTHORIZED, e.getMessage());
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<Map<String, Object>> forbidden(ForbiddenException e) {
+        return body(HttpStatus.FORBIDDEN, e.getMessage());
     }
 
     private ResponseEntity<Map<String, Object>> body(HttpStatus status, String message) {

@@ -9,6 +9,14 @@ validated, and the schema is auto-synced (additive) on boot.
 **Threshold met:** an app fully defined by config, no per-app code; integration test drives
 REST + GraphQL CRUD end-to-end on H2. ✔
 
+## ✅ v0.5 — Config-driven auth (DONE)
+JWT (HS256) auth declared entirely in the `security` config block: `/auth/login`, an
+in-config user store (plaintext or BCrypt), and per-entity `read`/`write` role rules
+enforced identically across REST and GraphQL via one `AccessGuard`. Disabled by default.
+**Threshold met:** login issues a token; role rules gate read vs. write; same rules apply
+on both protocols — proven by `SecurityIntegrationTest`. ✔
+*(Still to come here: OAuth2/OIDC, API keys, row-level rules — see v3.)*
+
 ## v1 — Production data layer + artifact packaging
 - Replace the hand-rolled dialect SQL with **Hibernate 6** (CRUD) + **jOOQ** (complex/dynamic
   queries); keep the `SqlDialect` seam.

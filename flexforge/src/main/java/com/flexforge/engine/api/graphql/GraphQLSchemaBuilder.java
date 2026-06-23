@@ -32,10 +32,13 @@ public class GraphQLSchemaBuilder {
 
     private final MetadataRegistry registry;
     private final DynamicCrudService crud;
+    private final com.flexforge.engine.auth.AccessGuard accessGuard;
 
-    public GraphQLSchemaBuilder(MetadataRegistry registry, DynamicCrudService crud) {
+    public GraphQLSchemaBuilder(MetadataRegistry registry, DynamicCrudService crud,
+                                com.flexforge.engine.auth.AccessGuard accessGuard) {
         this.registry = registry;
         this.crud = crud;
+        this.accessGuard = accessGuard;
     }
 
     public GraphQLSchema build() {
@@ -146,6 +149,7 @@ public class GraphQLSchemaBuilder {
 
     DataFetcher<List<Map<String, Object>>> listFetcher(EntityConfig entity) {
         return env -> {
+            accessGuard.requireRead(entity.name);
             com.flexforge.engine.data.QueryOptions opts = new com.flexforge.engine.data.QueryOptions();
             Integer page = env.getArgument("page");
             Integer size = env.getArgument("size");
@@ -160,19 +164,31 @@ public class GraphQLSchemaBuilder {
     }
 
     DataFetcher<Map<String, Object>> byIdFetcher(EntityConfig entity) {
-        return env -> crud.findById(entity.name, env.getArgument("id"));
+        return env -> {
+            accessGuard.requireRead(entity.name);
+            return crud.findById(entity.name, env.getArgument("id"));
+        };
     }
 
     DataFetcher<Map<String, Object>> createFetcher(EntityConfig entity) {
-        return env -> crud.create(entity.name, env.getArgument("input"));
+        return env -> {
+            accessGuard.requireWrite(entity.name);
+            return crud.create(entity.name, env.getArgument("input"));
+        };
     }
 
     DataFetcher<Map<String, Object>> updateFetcher(EntityConfig entity) {
-        return env -> crud.update(entity.name, env.getArgument("id"), env.getArgument("input"));
+        return env -> {
+            accessGuard.requireWrite(entity.name);
+            return crud.update(entity.name, env.getArgument("id"), env.getArgument("input"));
+        };
     }
 
     DataFetcher<Boolean> deleteFetcher(EntityConfig entity) {
-        return env -> crud.delete(entity.name, env.getArgument("id"));
+        return env -> {
+            accessGuard.requireWrite(entity.name);
+            return crud.delete(entity.name, env.getArgument("id"));
+        };
     }
 
     MetadataRegistry registry() {

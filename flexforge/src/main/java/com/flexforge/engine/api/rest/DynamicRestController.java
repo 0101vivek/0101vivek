@@ -34,10 +34,13 @@ public class DynamicRestController {
 
     private final DynamicCrudService crud;
     private final MetadataRegistry registry;
+    private final com.flexforge.engine.auth.AccessGuard accessGuard;
 
-    public DynamicRestController(DynamicCrudService crud, MetadataRegistry registry) {
+    public DynamicRestController(DynamicCrudService crud, MetadataRegistry registry,
+                                 com.flexforge.engine.auth.AccessGuard accessGuard) {
         this.crud = crud;
         this.registry = registry;
+        this.accessGuard = accessGuard;
     }
 
     @GetMapping("/{entity}")
@@ -48,6 +51,7 @@ public class DynamicRestController {
                      @RequestParam(defaultValue = "ASC") String direction,
                      @RequestParam MultiValueMap<String, String> allParams) {
         guard(entity);
+        accessGuard.requireRead(entity);
         QueryOptions opts = new QueryOptions();
         opts.page = page;
         opts.size = size;
@@ -64,6 +68,7 @@ public class DynamicRestController {
     @GetMapping("/{entity}/{id}")
     public Map<String, Object> get(@PathVariable String entity, @PathVariable String id) {
         guard(entity);
+        accessGuard.requireRead(entity);
         return crud.findById(entity, id);
     }
 
@@ -71,6 +76,7 @@ public class DynamicRestController {
     public ResponseEntity<Map<String, Object>> create(@PathVariable String entity,
                                                        @RequestBody Map<String, Object> body) {
         guard(entity);
+        accessGuard.requireWrite(entity);
         return ResponseEntity.status(HttpStatus.CREATED).body(crud.create(entity, body));
     }
 
@@ -78,12 +84,14 @@ public class DynamicRestController {
     public Map<String, Object> update(@PathVariable String entity, @PathVariable String id,
                                       @RequestBody Map<String, Object> body) {
         guard(entity);
+        accessGuard.requireWrite(entity);
         return crud.update(entity, id, body);
     }
 
     @DeleteMapping("/{entity}/{id}")
     public ResponseEntity<Void> delete(@PathVariable String entity, @PathVariable String id) {
         guard(entity);
+        accessGuard.requireWrite(entity);
         crud.delete(entity, id);
         return ResponseEntity.noContent().build();
     }

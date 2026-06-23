@@ -198,9 +198,17 @@ public class DynamicCrudService {
     private Map<String, Object> readRow(EntityConfig entity, java.sql.ResultSet rs) throws java.sql.SQLException {
         Map<String, Object> row = new LinkedHashMap<>();
         for (FieldConfig f : entity.fields) {
-            row.put(f.name, rs.getObject(f.name));
+            row.put(f.name, normalize(rs.getObject(f.name)));
         }
         return row;
+    }
+
+    /** Convert JDBC-specific values (CLOB, etc.) into plain, JSON-serializable Java types. */
+    private Object normalize(Object value) throws java.sql.SQLException {
+        if (value instanceof java.sql.Clob clob) {
+            return clob.getSubString(1, (int) clob.length());
+        }
+        return value;
     }
 
     private FieldConfig requirePk(EntityConfig entity) {

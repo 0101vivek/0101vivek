@@ -39,15 +39,32 @@ api.rest.DynamicRestController  /api/{entity} CRUD — every entity, one control
 api.graphql.GraphQLSchemaBuilder  builds a GraphQL schema at runtime from the same metadata
 api.graphql.GraphQLController   /graphql endpoint + /graphql/schema SDL
 
+auth.SecurityFilter             reads Bearer JWT → populates AuthContext (per request)
+auth.JwtService                 issues/verifies HS256 tokens carrying roles
+auth.AuthContext                ThreadLocal principal read by every protocol surface
+auth.AccessGuard                one authorization check (per-entity read/write role rules)
+auth.AuthController             POST /auth/login against the in-config user store
+
 bootstrap.EngineConfiguration   composition root: load→validate→datasource→dialect→beans
 bootstrap.EngineBootstrap       runs schema sync on startup (before traffic)
 ```
 
 The decisive property: **REST and GraphQL are both thin projections over the one
-`DynamicCrudService`.** Adding a protocol (gRPC, OData, WebSocket subscriptions) means
-adding a surface that calls the same service — the data model and business logic are never
+`DynamicCrudService`, and both enforce auth through the one `AccessGuard`.** Adding a
+protocol (gRPC, OData, WebSocket subscriptions) means adding a surface that calls the same
+service and the same guard — the data model, business logic, and security are never
 re-implemented per protocol. That is what "one platform that can do everything" means in
 practice.
+
+## Auth as configuration
+
+`security` is a config block (`SecurityConfig`), not code. `SecurityFilter` verifies the
+Bearer JWT and sets a per-request `AuthContext` (a `ThreadLocal`, read by both the REST
+controller and the GraphQL fetchers since they run on the request thread). `AccessGuard`
+is the single enforcement point: per-entity `read`/`write` role rules, evaluated
+identically regardless of protocol. When `security.enabled=false` it is a no-op. The seam
+is deliberately provider-agnostic so OAuth2/OIDC slot in by populating the same
+`AuthContext`.
 
 ## Multi-database strategy
 

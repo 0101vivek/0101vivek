@@ -99,6 +99,37 @@
         "pattern": { "type": "string" },
         "backupBeforeApply": { "type": "boolean" }
       }
+    },
+    "security": {
+      "type": "object",
+      "description": "Config-driven JWT auth. When enabled is false the app is open.",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "jwtSecret": { "type": "string" },
+        "tokenTtlMinutes": { "type": "integer", "minimum": 1 },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["username", "password"],
+            "properties": {
+              "username": { "type": "string", "minLength": 1 },
+              "password": { "type": "string", "minLength": 1 },
+              "roles": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "rules": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "read": { "type": "array", "items": { "type": "string" } },
+              "write": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
     }
   }
 }

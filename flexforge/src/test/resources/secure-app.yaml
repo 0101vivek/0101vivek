@@ -1,0 +1,30 @@
+# Test bundle with config-driven JWT auth enabled.
+appId: secure-demo
+configVersion: "0.1.0"
+engineVersion: "0.1.x"
+
+api:
+  rest:
+    enabled: true
+  graphql:
+    enabled: true
+
+security:
+  enabled: true
+  jwtSecret: test-secret-key-that-is-definitely-long-enough-1234567890
+  tokenTtlMinutes: 30
+  users:
+    - { username: admin,  password: admin123,  roles: [ADMIN] }
+    - { username: viewer, password: viewer123, roles: [VIEWER] }
+  rules:
+    Note:
+      read: [ADMIN, VIEWER]   # both roles may read
+      write: [ADMIN]          # only ADMIN may write
+
+entities:
+  - name: Note
+    idStrategy: IDENTITY
+    fields:
+      - { name: id,    type: LONG,   pk: true }
+      - { name: title, type: STRING, length: 200, nullable: false }
+      - { name: body,  type: TEXT }

@@ -28,6 +28,9 @@ public class AppConfig {
     /** Which API protocols to expose over the data model (REST, GraphQL, ...). */
     public ApiConfig api = new ApiConfig();
 
+    /** Config-driven authentication & authorization (JWT). Disabled by default. */
+    public SecurityConfig security = new SecurityConfig();
+
     /** How schema changes are applied across regenerations. */
     public MigrationPolicy migrationPolicy = new MigrationPolicy();
 

@@ -80,6 +80,38 @@ curl -s -X POST localhost:8080/graphql -H 'Content-Type: application/json' \
 curl -s localhost:8080/graphql/schema
 ```
 
+## Auth — configured, not coded
+
+Authentication is a config block, not hand-written code. Turn it on, declare users/roles
+and per-entity rules; the engine enforces them across **both** REST and GraphQL (they share
+one `AccessGuard`). Disabled by default, so open apps are unaffected.
+
+```yaml
+security:
+  enabled: true
+  jwtSecret: ${JWT_SECRET}        # HS256; use a strong env value in prod
+  tokenTtlMinutes: 60
+  users:
+    - { username: admin,  password: admin123,  roles: [ADMIN] }   # plaintext or $2a$ bcrypt
+    - { username: viewer, password: viewer123, roles: [VIEWER] }
+  rules:
+    Customer:
+      read:  [ADMIN, VIEWER]      # empty/omitted = any authenticated user
+      write: [ADMIN]
+```
+
+```bash
+# log in → JWT
+TOKEN=$(curl -s -X POST localhost:8080/auth/login -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"admin123"}' | jq -r .token)
+
+# call protected endpoints (REST and GraphQL both honor the same rules)
+curl -s localhost:8080/api/Customer -H "Authorization: Bearer $TOKEN"
+```
+
+OAuth2/OIDC and external identity providers plug into the same `AuthContext`/`AccessGuard`
+seam (see ROADMAP).
+
 ## How a request flows
 
 ```

@@ -57,7 +57,7 @@ public class EngineConfiguration {
     public AppConfig appConfig(ConfigLoader loader, ConfigValidator validator) {
         AppConfig config;
         JsonNode tree;
-        if (configPath != null && !configPath.isBlank()) {
+        if (configPath != null && !configPath.isBlank() && !configPath.startsWith("classpath:")) {
             Path path = Path.of(configPath);
             if (!Files.exists(path)) {
                 throw new IllegalStateException("Configured flexforge.config.path does not exist: " + path);
@@ -66,17 +66,22 @@ public class EngineConfiguration {
             config = loader.loadFromPath(path);
             tree = loader.readTree(path);
         } else {
-            log.info("[engine] loading bundled classpath config: config/app.yaml");
-            ClassPathResource resource = new ClassPathResource("config/app.yaml");
+            String resourceName = (configPath != null && configPath.startsWith("classpath:"))
+                    ? configPath.substring("classpath:".length())
+                    : "config/app.yaml";
+            boolean json = resourceName.endsWith(".json");
+            log.info("[engine] loading classpath config: {}", resourceName);
+            ClassPathResource resource = new ClassPathResource(resourceName);
             try (InputStream in = resource.getInputStream()) {
-                config = loader.loadFromStream(in, false);
+                config = loader.loadFromStream(in, json);
             } catch (Exception e) {
-                throw new IllegalStateException("Failed to read classpath config/app.yaml", e);
+                throw new IllegalStateException("Failed to read classpath config: " + resourceName, e);
             }
             try (InputStream in = resource.getInputStream()) {
-                tree = new com.fasterxml.jackson.dataformat.yaml.YAMLMapper().readTree(in);
+                tree = (json ? new com.fasterxml.jackson.databind.ObjectMapper()
+                        : new com.fasterxml.jackson.dataformat.yaml.YAMLMapper()).readTree(in);
             } catch (Exception e) {
-                throw new IllegalStateException("Failed to parse classpath config/app.yaml", e);
+                throw new IllegalStateException("Failed to parse classpath config: " + resourceName, e);
             }
         }
         validator.validate(tree, config);
@@ -89,6 +94,25 @@ public class EngineConfiguration {
     @Bean
     public MetadataRegistry metadataRegistry(AppConfig appConfig) {
         return new MetadataRegistry(appConfig);
+    }
+
+    @Bean
+    public com.flexforge.engine.config.model.SecurityConfig securityConfig(AppConfig appConfig) {
+        return appConfig.security == null
+                ? new com.flexforge.engine.config.model.SecurityConfig()
+                : appConfig.security;
+    }
+
+    @Bean
+    public com.flexforge.engine.auth.JwtService jwtService(
+            com.flexforge.engine.config.model.SecurityConfig security) {
+        return new com.flexforge.engine.auth.JwtService(security);
+    }
+
+    @Bean
+    public com.flexforge.engine.auth.AccessGuard accessGuard(
+            com.flexforge.engine.config.model.SecurityConfig security) {
+        return new com.flexforge.engine.auth.AccessGuard(security);
     }
 
     @Bean
@@ -135,8 +159,9 @@ public class EngineConfiguration {
     }
 
     @Bean
-    public GraphQLSchemaBuilder graphQLSchemaBuilder(MetadataRegistry registry, DynamicCrudService crud) {
-        return new GraphQLSchemaBuilder(registry, crud);
+    public GraphQLSchemaBuilder graphQLSchemaBuilder(MetadataRegistry registry, DynamicCrudService crud,
+                                                     com.flexforge.engine.auth.AccessGuard accessGuard) {
+        return new GraphQLSchemaBuilder(registry, crud, accessGuard);
     }
 
     @Bean
