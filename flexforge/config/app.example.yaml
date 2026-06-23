@@ -1,0 +1,42 @@
+# ---------------------------------------------------------------------------
+# Example EXTERNAL config bundle. Mount/point the engine at this file with:
+#   FLEXFORGE_CONFIG_PATH=/config/app.yaml
+# It shows the same engine image targeting PostgreSQL via environment variables.
+# ---------------------------------------------------------------------------
+appId: crm-acme
+configVersion: "1.0.0"
+engineVersion: "0.1.x"
+
+database:
+  engine: ${DB_ENGINE}        # postgres | mysql | h2
+  url: ${DB_URL}              # e.g. jdbc:postgresql://db:5432/crm
+  username: ${DB_USERNAME}
+  password: ${DB_PASSWORD}
+  pool:
+    maxSize: 15
+    minIdle: 7
+    maxLifetimeMs: 1680000
+
+api:
+  rest:
+    enabled: true
+    basePath: /api
+  graphql:
+    enabled: true
+    path: /graphql
+
+entities:
+  - name: Customer
+    idStrategy: SEQUENCE
+    fields:
+      - { name: id,        type: LONG,   pk: true }
+      - { name: email,     type: STRING, length: 255, unique: true, nullable: false }
+      - { name: fullName,  type: STRING, length: 200 }
+      - { name: profile,   type: JSON }
+      - { name: createdAt, type: TIMESTAMP }
+
+migrationPolicy:
+  additive: auto
+  destructive: require_approval
+  pattern: expand_contract
+  backupBeforeApply: true

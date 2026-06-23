@@ -1,0 +1,56 @@
+# FlexForge Roadmap
+
+Staged so each version has a clear, demonstrable threshold before moving on.
+
+## ✅ v0 — Engine spike (DONE in this commit)
+Runtime engine interpreting a minimal config (entities + fields + CRUD) on H2/Postgres/MySQL,
+exposed over **both REST and GraphQL** from the same metadata. Config is loaded, JSON-Schema
+validated, and the schema is auto-synced (additive) on boot.
+**Threshold met:** an app fully defined by config, no per-app code; integration test drives
+REST + GraphQL CRUD end-to-end on H2. ✔
+
+## v1 — Production data layer + artifact packaging
+- Replace the hand-rolled dialect SQL with **Hibernate 6** (CRUD) + **jOOQ** (complex/dynamic
+  queries); keep the `SqlDialect` seam.
+- Add **Oracle** and **SQL Server** drivers; rely on Hibernate 6 dialect auto-detection.
+- Package per-app artifacts with **Jib** (engine base + config layer); ship platform-hosted
+  and `docker run` self-host.
+- Conformance test suite running the same config's CRUD against all four engines
+  (Testcontainers).
+- **Threshold:** the same config runs unmodified on all four engines; an artifact boots
+  against a user-supplied DB via env vars.
+
+## v2 — Clean regenerate loop
+- Immutable, content-hashed **config versioning** with full history.
+- **Liquibase** programmatic diff (desired-from-config vs. live DB) → changeset.
+- **Additive vs. destructive classification**; destructive changes require explicit
+  preview + approval; pre-apply backup.
+- **Expand/contract** migrations + **blue-green** redeploy + rollback.
+- **Threshold:** a data-model change deploys with zero downtime behind a clear
+  destructive-change gate; rollback works for additive changes.
+
+## v3 — More protocols, richer logic, hot-reload, AI
+- **Config hot-reload** for non-schema changes (UI/rules/new endpoint) with zero rebuild.
+- More API surfaces over the same core: **gRPC**, **WebSocket subscriptions**, **OData**,
+  bulk/batch endpoints, filtering/search DSL.
+- **Auth modules** as config: JWT, OAuth2/OIDC, API keys, RBAC/row-level rules.
+- **Rules & workflows** engine; relations (1-N, N-N) and computed fields.
+- **Third-party integrations** declared in config (webhooks, email/SMS, payment) — wired,
+  not hand-coded.
+- **AI augmentation** in the design plane: natural language → validated config (never
+  source), which keeps everything inside the safe, no-source envelope.
+- **Threshold:** turning a protocol or an auth module on/off is a config edit, not code.
+
+## v4 — Scale-out & options
+- In-cluster builds (Kaniko), BYO-cloud export (artifact + Helm chart).
+- Evaluate a pinned-DB **GraalVM-native** variant for latency-sensitive apps.
+- NoSQL field types / external connectors where demand justifies it.
+- Multi-tenant routing inside one engine if hosting many tiny apps cheaply.
+
+---
+
+### Guardrails that don't change
+- Engine model over code-gen (until a measured bottleneck justifies hot-path compilation).
+- Single DB abstraction over per-DB adapters.
+- Liquibase migrations; expand/contract + preview/approve + backup, always.
+- The config schema is the product — validate every version before it deploys.

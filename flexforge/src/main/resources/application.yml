@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: flexforge-engine
+  # We build the DataSource ourselves from the config bundle, so disable Spring Boot's
+  # automatic DataSource initialization from properties.
+  sql:
+    init:
+      mode: never
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+# Point this at an external bundle to run a different app with the same engine image:
+#   FLEXFORGE_CONFIG_PATH=/config/app.yaml
+flexforge:
+  config:
+    path: ${FLEXFORGE_CONFIG_PATH:}
+
+logging:
+  level:
+    com.flexforge: INFO

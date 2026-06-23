@@ -1,0 +1,55 @@
+# ---------------------------------------------------------------------------
+# FlexForge config bundle — the single source of truth for this application.
+# The engine interprets this at runtime. There is no generated source code.
+# This bundled sample uses in-memory H2 so the engine runs with zero setup.
+# ---------------------------------------------------------------------------
+appId: crm-demo
+configVersion: "0.1.0"
+engineVersion: "0.1.x"
+
+database:
+  # engine/url/credentials may be ${ENV} placeholders. With nothing set, the engine
+  # falls back to in-memory H2 — see EngineConfiguration#dataSource.
+  engine: ${DB_ENGINE}
+  url: ${DB_URL}
+  username: ${DB_USERNAME}
+  password: ${DB_PASSWORD}
+  pool:
+    maxSize: 15
+    minIdle: 7
+    maxLifetimeMs: 1680000
+
+api:
+  rest:
+    enabled: true
+    basePath: /api
+  graphql:
+    enabled: true
+    path: /graphql
+
+entities:
+  - name: Customer
+    idStrategy: IDENTITY
+    fields:
+      - { name: id,        type: LONG,    pk: true }
+      - { name: email,     type: STRING,  length: 255, unique: true, nullable: false }
+      - { name: fullName,  type: STRING,  length: 200 }
+      - { name: tier,      type: STRING,  length: 30 }
+      - { name: active,    type: BOOLEAN }
+      - { name: profile,   type: JSON }
+      - { name: createdAt, type: TIMESTAMP }
+
+  - name: Product
+    idStrategy: IDENTITY
+    fields:
+      - { name: id,        type: LONG,    pk: true }
+      - { name: sku,       type: STRING,  length: 64, unique: true, nullable: false }
+      - { name: name,      type: STRING,  length: 200, nullable: false }
+      - { name: price,     type: DECIMAL }
+      - { name: inStock,   type: BOOLEAN }
+
+migrationPolicy:
+  additive: auto
+  destructive: require_approval
+  pattern: expand_contract
+  backupBeforeApply: true
