@@ -116,6 +116,12 @@ public class EngineConfiguration {
     }
 
     @Bean
+    public com.flexforge.engine.crypto.EncryptionService encryptionService(
+            com.flexforge.engine.config.model.SecurityConfig security) {
+        return new com.flexforge.engine.crypto.EncryptionService(resolve(security.encryptionKey));
+    }
+
+    @Bean
     public SqlDialect sqlDialect(AppConfig appConfig) {
         String engine = resolve(appConfig.database == null ? null : appConfig.database.engine);
         if (engine == null || engine.isBlank()) {
@@ -154,8 +160,9 @@ public class EngineConfiguration {
     public DynamicCrudService dynamicCrudService(NamedParameterJdbcTemplate jdbc,
                                                  MetadataRegistry registry,
                                                  SqlDialect dialect,
-                                                 ObjectMapper objectMapper) {
-        return new DynamicCrudService(jdbc, registry, dialect, objectMapper);
+                                                 ObjectMapper objectMapper,
+                                                 com.flexforge.engine.crypto.EncryptionService encryption) {
+        return new DynamicCrudService(jdbc, registry, dialect, objectMapper, encryption);
     }
 
     @Bean

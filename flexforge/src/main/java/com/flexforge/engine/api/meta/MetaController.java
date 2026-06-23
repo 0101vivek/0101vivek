@@ -63,6 +63,7 @@ public class MetaController {
                 putIfNotNull(fm, "pattern", f.pattern);
                 putIfNotNull(fm, "references", f.references);
                 fm.put("email", f.email);
+                fm.put("encrypted", f.encrypted);
                 fm.put("uiVisible", f.uiVisible);
                 fields.add(fm);
             }

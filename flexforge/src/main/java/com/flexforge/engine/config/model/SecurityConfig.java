@@ -25,6 +25,12 @@ public class SecurityConfig {
     /** Access-token lifetime in minutes. */
     public int tokenTtlMinutes = 60;
 
+    /** Secret used to derive the AES key for field-level encryption (use ${ENV} in prod). */
+    public String encryptionKey;
+
+    /** API keys accepted via the X-API-Key header as an alternative to JWT login. */
+    public List<ApiKeyDef> apiKeys = new ArrayList<>();
+
     /** In-config user store. Passwords may be plaintext (v0) or BCrypt ($2a$...) hashes. */
     public List<UserDef> users = new ArrayList<>();
 
@@ -52,9 +58,24 @@ public class SecurityConfig {
         return null;
     }
 
+    public ApiKeyDef findApiKey(String key) {
+        for (ApiKeyDef k : apiKeys) {
+            if (k.key != null && k.key.equals(key)) {
+                return k;
+            }
+        }
+        return null;
+    }
+
     public static class UserDef {
         public String username;
         public String password;
+        public List<String> roles = new ArrayList<>();
+    }
+
+    public static class ApiKeyDef {
+        public String key;
+        public String name;
         public List<String> roles = new ArrayList<>();
     }
 

@@ -32,13 +32,16 @@ public class DynamicCrudService {
     private final MetadataRegistry registry;
     private final SqlDialect dialect;
     private final ObjectMapper objectMapper;
+    private final com.flexforge.engine.crypto.EncryptionService encryption;
 
     public DynamicCrudService(NamedParameterJdbcTemplate jdbc, MetadataRegistry registry,
-                              SqlDialect dialect, ObjectMapper objectMapper) {
+                              SqlDialect dialect, ObjectMapper objectMapper,
+                              com.flexforge.engine.crypto.EncryptionService encryption) {
         this.jdbc = jdbc;
         this.registry = registry;
         this.dialect = dialect;
         this.objectMapper = objectMapper;
+        this.encryption = encryption;
     }
 
     public Page list(String entityName, QueryOptions opts) {
@@ -105,7 +108,7 @@ public class DynamicCrudService {
             if (data.containsKey(f.name)) {
                 cols.add(dialect.quote(Naming.columnName(f)));
                 placeholders.add(":" + f.name);
-                params.addValue(f.name, coerce(f, data.get(f.name)));
+                params.addValue(f.name, writeValue(f, data.get(f.name)));
             }
         }
         if (cols.isEmpty()) {
@@ -139,7 +142,7 @@ public class DynamicCrudService {
             }
             if (data.containsKey(f.name)) {
                 sets.add(dialect.quote(Naming.columnName(f)) + " = :" + f.name);
-                params.addValue(f.name, coerce(f, data.get(f.name)));
+                params.addValue(f.name, writeValue(f, data.get(f.name)));
             }
         }
         if (sets.isEmpty()) {
@@ -243,9 +246,22 @@ public class DynamicCrudService {
     private Map<String, Object> readRow(EntityConfig entity, java.sql.ResultSet rs) throws java.sql.SQLException {
         Map<String, Object> row = new LinkedHashMap<>();
         for (FieldConfig f : entity.fields) {
-            row.put(f.name, normalize(rs.getObject(f.name)));
+            Object value = normalize(rs.getObject(f.name));
+            if (f.encrypted && value != null) {
+                value = encryption.decrypt(value.toString());
+            }
+            row.put(f.name, value);
         }
         return row;
+    }
+
+    /** Coerce then (if configured) encrypt a value on its way into the database. */
+    private Object writeValue(FieldConfig f, Object raw) {
+        Object value = coerce(f, raw);
+        if (f.encrypted && value != null) {
+            return encryption.encrypt(value.toString());
+        }
+        return value;
     }
 
     /** Convert JDBC-specific values (CLOB, etc.) into plain, JSON-serializable Java types. */

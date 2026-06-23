@@ -22,7 +22,9 @@ round-trip/merge problem because there is no hand-written source to overwrite.
 
 - **Config-defined entities/fields** → tables auto-created on boot (additive sync)
 - **REST + GraphQL** from one model, plus an auto-generated **OpenAPI** spec
-- **Config-driven JWT auth** + per-entity read/write **role rules** (one `AccessGuard` for every protocol)
+- **Config-driven JWT auth** + **API-key** (X-API-Key) auth + per-entity read/write **role rules** (one `AccessGuard` for every protocol)
+- **Field-level encryption** (`encrypted: true` → AES-256-GCM at rest, transparent on read)
+- **File/image/document fields** (`FILE`): upload, inline download, base64 — `/api/{entity}/{id}/file/{field}`
 - **Declarative validation** (required, min/max, minLength/maxLength, pattern, email)
 - **Operator search**: `?field_like=`, `_gt`, `_gte`, `_lt`, `_lte`, `_ne`, `_in`
 - **Relations** (`REFERENCE` fields) with app-level integrity — entities **connect**

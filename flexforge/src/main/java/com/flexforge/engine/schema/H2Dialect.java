@@ -24,6 +24,7 @@ public class H2Dialect implements SqlDialect {
             case TIMESTAMP -> "TIMESTAMP";
             case JSON -> "VARCHAR(8192)";
             case REFERENCE -> "BIGINT";
+            case FILE -> "CLOB";
         };
     }
 

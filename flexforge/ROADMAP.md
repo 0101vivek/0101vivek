@@ -28,6 +28,14 @@ on both protocols — proven by `SecurityIntegrationTest`. ✔
 **Threshold met:** a non-trivial app (Customer/Product/Order with a relation, validation,
 auth) is fully usable from the generated UI and APIs with no app code. ✔
 
+## ✅ v0.8 — Crypto + files + API keys (DONE)
+- **Field-level encryption** (AES-256-GCM) via `encrypted: true`, transparent on read
+- **FILE** field type: upload / inline download / base64 over `/api/{entity}/{id}/file/{field}`
+- **API-key** auth (X-API-Key) alongside JWT, sharing the same AccessGuard
+- Reusable `EncryptionService` (AES-GCM, SHA-256, base64)
+**Threshold met:** sensitive fields are encrypted at rest; images/documents store and
+serve through the API; both verified by tests (17 total passing). ✔
+
 ## v1 — Production data layer + artifact packaging
 - Replace the hand-rolled dialect SQL with **Hibernate 6** (CRUD) + **jOOQ** (complex/dynamic
   queries); keep the `SqlDialect` seam.

@@ -17,5 +17,7 @@ public enum FieldType {
     TIMESTAMP,
     JSON,
     /** Foreign-key style link to another entity's primary key (see FieldConfig.references). */
-    REFERENCE
+    REFERENCE,
+    /** Stored file/image/document: JSON metadata + base64 content, served via the file API. */
+    FILE
 }

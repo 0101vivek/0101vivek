@@ -59,7 +59,7 @@
                 "name": { "type": "string", "minLength": 1 },
                 "type": {
                   "type": "string",
-                  "enum": ["STRING", "TEXT", "INT", "LONG", "DOUBLE", "DECIMAL", "BOOLEAN", "DATE", "TIMESTAMP", "JSON", "REFERENCE"]
+                  "enum": ["STRING", "TEXT", "INT", "LONG", "DOUBLE", "DECIMAL", "BOOLEAN", "DATE", "TIMESTAMP", "JSON", "REFERENCE", "FILE"]
                 },
                 "pk": { "type": "boolean" },
                 "unique": { "type": "boolean" },
@@ -72,6 +72,7 @@
                 "max": { "type": "number" },
                 "pattern": { "type": "string" },
                 "email": { "type": "boolean" },
+                "encrypted": { "type": "boolean" },
                 "uiVisible": { "type": "boolean" },
                 "references": { "type": "string" }
               }

@@ -48,4 +48,8 @@ public class FieldConfig {
 
     /** For REFERENCE fields: the target entity name this field links to. */
     public String references;
+
+    /** When true, the value is stored AES-256-GCM encrypted at rest and decrypted on read.
+     *  Use with STRING/TEXT (ciphertext is longer than plaintext — prefer TEXT). */
+    public boolean encrypted = false;
 }

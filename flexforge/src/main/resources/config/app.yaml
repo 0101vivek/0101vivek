@@ -37,6 +37,7 @@ entities:
       - { name: tier,      type: STRING,  length: 30 }
       - { name: active,    type: BOOLEAN }
       - { name: profile,   type: JSON }
+      - { name: ssn,       type: TEXT,    encrypted: true }   # stored AES-256-GCM encrypted
       - { name: createdAt, type: TIMESTAMP }
 
   - name: Product
@@ -58,6 +59,18 @@ entities:
       - { name: status,     type: STRING,    length: 30 }
       - { name: createdAt,  type: TIMESTAMP }
       - { name: updatedAt,  type: TIMESTAMP }
+
+  # Stores an uploaded file/image/document via the file API.
+  - name: Document
+    idStrategy: IDENTITY
+    fields:
+      - { name: id,         type: LONG,   pk: true }
+      - { name: title,      type: STRING, length: 200 }
+      - { name: attachment, type: FILE }
+
+security:
+  enabled: false              # demo is open; flip to true + add users/rules to lock it
+  encryptionKey: ${ENCRYPTION_KEY}   # falls back to a dev key if unset
 
 migrationPolicy:
   additive: auto

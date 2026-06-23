@@ -36,12 +36,19 @@ public class SecurityFilter extends OncePerRequestFilter {
         try {
             if (security.enabled) {
                 String header = request.getHeader("Authorization");
+                String apiKey = request.getHeader("X-API-Key");
                 if (header != null && header.startsWith("Bearer ")) {
                     try {
                         AuthContext.Principal principal = jwtService.verify(header.substring(7).trim());
                         AuthContext.set(principal.username(), principal.roles());
                     } catch (RuntimeException ignored) {
                         // Invalid token → stay unauthenticated; AccessGuard will 401 on use.
+                    }
+                } else if (apiKey != null) {
+                    var def = security.findApiKey(apiKey.trim());
+                    if (def != null) {
+                        AuthContext.set(def.name == null ? "api-key" : def.name,
+                                new java.util.LinkedHashSet<>(def.roles));
                     }
                 }
             }

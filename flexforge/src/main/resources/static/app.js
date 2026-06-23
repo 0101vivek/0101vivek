@@ -109,11 +109,11 @@
     tbody.innerHTML = '';
     const pk = em.fields.find((f) => f.pk);
     (page.content || []).forEach((row) => {
+      const id = row[pk.name];
       const tr = document.createElement('tr');
-      tr.innerHTML = cols.map((c) => `<td>${fmt(row[c.name])}</td>`).join('');
+      tr.innerHTML = cols.map((c) => `<td>${cell(c, row, id)}</td>`).join('');
       const td = document.createElement('td');
       td.className = 'row-actions';
-      const id = row[pk.name];
       const edit = btn('Edit', 'small', () => openForm(row));
       const del = btn('Delete', 'small danger', () => removeRow(id));
       td.append(edit, del);
@@ -124,6 +124,15 @@
       `Page ${page.page + 1} · ${page.total} total`;
     $('prevBtn').disabled = page.page <= 0;
     $('nextBtn').disabled = (page.page + 1) * page.size >= page.total;
+  }
+
+  function cell(c, row, id) {
+    if (c.type === 'FILE') {
+      return row[c.name]
+        ? `<a class="ghost" target="_blank" href="/api/${state.entity}/${id}/file/${c.name}">📎 open</a>`
+        : '<span class="muted">—</span>';
+    }
+    return fmt(row[c.name]);
   }
 
   const fmt = (v) => {
@@ -165,6 +174,9 @@
       case 'INT': case 'LONG': case 'DOUBLE': case 'DECIMAL':
         input = el('input'); input.type = 'number'; if (value != null) input.value = value;
         if (f.min != null) input.min = f.min; if (f.max != null) input.max = f.max;
+        break;
+      case 'FILE':
+        input = el('input'); input.type = 'file';
         break;
       case 'REFERENCE':
         input = el('select');
@@ -209,9 +221,10 @@
   function collectForm() {
     const body = {};
     $('recordForm').querySelectorAll('[data-field]').forEach((inp) => {
+      const t = inp.dataset.ftype;
+      if (t === 'FILE') return; // files are uploaded separately after save
       let v = inp.value;
       if (v === '' || v === null) return;
-      const t = inp.dataset.ftype;
       if (t === 'BOOLEAN') v = (v === 'true');
       else if (['INT', 'LONG', 'REFERENCE'].includes(t)) v = parseInt(v, 10);
       else if (['DOUBLE', 'DECIMAL'].includes(t)) v = parseFloat(v);
@@ -223,17 +236,34 @@
   async function saveRecord() {
     const body = collectForm();
     const base = `/api/${state.entity}`;
+    const pk = currentEntityMeta().fields.find((f) => f.pk);
     try {
+      let saved;
       if (state.editingId == null) {
-        await api(base, { method: 'POST', body: JSON.stringify(body) });
+        saved = await api(base, { method: 'POST', body: JSON.stringify(body) });
       } else {
-        await api(`${base}/${state.editingId}`, { method: 'PUT', body: JSON.stringify(body) });
+        saved = await api(`${base}/${state.editingId}`, { method: 'PUT', body: JSON.stringify(body) });
       }
+      const id = state.editingId != null ? state.editingId : saved[pk.name];
+      await uploadFiles(id);
       hide('modal');
       banner('Saved', 'ok');
       loadList();
     } catch (e) {
       showFormError(e.message);
+    }
+  }
+
+  async function uploadFiles(id) {
+    const inputs = $('recordForm').querySelectorAll('input[type=file]');
+    for (const inp of inputs) {
+      if (!inp.files || !inp.files[0]) continue;
+      const fd = new FormData();
+      fd.append('file', inp.files[0]);
+      const headers = state.token ? { Authorization: 'Bearer ' + state.token } : {};
+      const res = await fetch(`/api/${state.entity}/${id}/file/${inp.dataset.field}`,
+        { method: 'POST', headers, body: fd });
+      if (!res.ok) throw new Error('File upload failed for ' + inp.dataset.field);
     }
   }
 
