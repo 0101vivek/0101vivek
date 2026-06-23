@@ -3,6 +3,7 @@ package com.flexforge.engine.api.rest;
 import com.flexforge.engine.error.ForbiddenException;
 import com.flexforge.engine.error.NotFoundException;
 import com.flexforge.engine.error.UnauthenticatedException;
+import com.flexforge.engine.error.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,6 +24,17 @@ public class RestExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> badRequest(IllegalArgumentException e) {
         return body(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<Map<String, Object>> validation(ValidationException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "timestamp", java.time.Instant.now().toString(),
+                "status", HttpStatus.BAD_REQUEST.value(),
+                "error", "Bad Request",
+                "message", "Validation failed",
+                "errors", e.getErrors()
+        ));
     }
 
     @ExceptionHandler(UnauthenticatedException.class)

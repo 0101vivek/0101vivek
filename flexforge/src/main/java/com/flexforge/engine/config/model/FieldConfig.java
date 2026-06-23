@@ -22,4 +22,27 @@ public class FieldConfig {
 
     /** Column name override; defaults to snake_case(name). */
     public String column;
+
+    // ---- declarative validation rules (enforced by FieldValidator) ----
+
+    /** Minimum string length. */
+    public Integer minLength;
+
+    /** Maximum string length. */
+    public Integer maxLength;
+
+    /** Minimum numeric value (INT/LONG/DOUBLE/DECIMAL). */
+    public Double min;
+
+    /** Maximum numeric value. */
+    public Double max;
+
+    /** Regex the value must fully match (STRING/TEXT). */
+    public String pattern;
+
+    /** Convenience flag: value must look like an email address. */
+    public boolean email = false;
+
+    /** Whether this field is shown/managed in the generated UI (default true). */
+    public boolean uiVisible = true;
 }

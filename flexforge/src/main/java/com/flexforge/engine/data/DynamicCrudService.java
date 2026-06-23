@@ -87,6 +87,7 @@ public class DynamicCrudService {
 
     public Map<String, Object> create(String entityName, Map<String, Object> data) {
         EntityConfig entity = registry.require(entityName);
+        FieldValidator.validate(entity, data, true);
         String table = dialect.quote(Naming.tableName(entity));
         FieldConfig pk = requirePk(entity);
 
@@ -120,6 +121,7 @@ public class DynamicCrudService {
 
     public Map<String, Object> update(String entityName, Object id, Map<String, Object> data) {
         EntityConfig entity = registry.require(entityName);
+        FieldValidator.validate(entity, data, false);
         String table = dialect.quote(Naming.tableName(entity));
         FieldConfig pk = requirePk(entity);
 
@@ -178,14 +180,51 @@ public class DynamicCrudService {
         }
         List<String> clauses = new ArrayList<>();
         int i = 0;
-        for (Map.Entry<String, Object> e : opts.filters.entrySet()) {
-            FieldConfig f = entity.field(e.getKey());
+        for (QueryOptions.Filter filter : opts.filters) {
+            FieldConfig f = entity.field(filter.field());
             if (f == null) {
                 continue; // ignore unknown filter keys rather than failing
             }
+            String col = dialect.quote(Naming.columnName(f));
             String p = "f" + (i++);
-            clauses.add(dialect.quote(Naming.columnName(f)) + " = :" + p);
-            params.addValue(p, coerce(f, e.getValue()));
+            switch (filter.op()) {
+                case NE -> {
+                    clauses.add(col + " <> :" + p);
+                    params.addValue(p, coerce(f, filter.value()));
+                }
+                case LIKE -> {
+                    clauses.add(col + " LIKE :" + p);
+                    params.addValue(p, "%" + filter.value() + "%");
+                }
+                case GT -> {
+                    clauses.add(col + " > :" + p);
+                    params.addValue(p, coerce(f, filter.value()));
+                }
+                case GTE -> {
+                    clauses.add(col + " >= :" + p);
+                    params.addValue(p, coerce(f, filter.value()));
+                }
+                case LT -> {
+                    clauses.add(col + " < :" + p);
+                    params.addValue(p, coerce(f, filter.value()));
+                }
+                case LTE -> {
+                    clauses.add(col + " <= :" + p);
+                    params.addValue(p, coerce(f, filter.value()));
+                }
+                case IN -> {
+                    List<Object> values = new ArrayList<>();
+                    for (String part : filter.value().toString().split(",")) {
+                        values.add(coerce(f, part.trim()));
+                    }
+                    clauses.add(col + " IN (:" + p + ")");
+                    params.addValue(p, values);
+                }
+                default -> {
+                    clauses.add(col + " = :" + p);
+                    params.addValue(p, coerce(f, filter.value()));
+                }
+            }
         }
         return clauses.isEmpty() ? "" : " WHERE " + String.join(" AND ", clauses);
     }

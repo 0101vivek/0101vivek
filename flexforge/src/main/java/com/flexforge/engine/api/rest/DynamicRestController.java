@@ -58,9 +58,21 @@ public class DynamicRestController {
         opts.sort = sort;
         opts.direction = direction;
         allParams.forEach((key, values) -> {
-            if (!RESERVED.contains(key) && !values.isEmpty()) {
-                opts.filters.put(key, values.get(0));
+            if (RESERVED.contains(key) || values.isEmpty()) {
+                return;
             }
+            // field_op syntax, e.g. name_like, price_gte, status_in. No suffix = equality.
+            int us = key.lastIndexOf('_');
+            String field = key;
+            QueryOptions.Op op = QueryOptions.Op.EQ;
+            if (us > 0) {
+                QueryOptions.Op parsed = QueryOptions.Op.fromSuffix(key.substring(us + 1));
+                if (parsed != QueryOptions.Op.EQ || key.substring(us + 1).equals("eq")) {
+                    field = key.substring(0, us);
+                    op = parsed;
+                }
+            }
+            opts.addFilter(field, op, values.get(0));
         });
         return crud.list(entity, opts);
     }

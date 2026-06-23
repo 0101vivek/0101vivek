@@ -32,8 +32,8 @@ entities:
     idStrategy: IDENTITY
     fields:
       - { name: id,        type: LONG,    pk: true }
-      - { name: email,     type: STRING,  length: 255, unique: true, nullable: false }
-      - { name: fullName,  type: STRING,  length: 200 }
+      - { name: email,     type: STRING,  length: 255, unique: true, nullable: false, email: true }
+      - { name: fullName,  type: STRING,  length: 200, minLength: 2 }
       - { name: tier,      type: STRING,  length: 30 }
       - { name: active,    type: BOOLEAN }
       - { name: profile,   type: JSON }
