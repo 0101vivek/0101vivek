@@ -68,4 +68,12 @@ class FeaturesIntegrationTest {
         assertThat(spec.getBody().get("openapi")).isEqualTo("3.0.3");
         assertThat(spec.getBody()).containsKey("paths");
     }
+
+    @Test
+    void adminUiIsServed() {
+        ResponseEntity<String> ui = rest.getForEntity("/", String.class);
+        assertThat(ui.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(ui.getBody()).contains("FlexForge Admin");
+        assertThat(rest.getForEntity("/app.js", String.class).getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
 }

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>FlexForge Admin</title>
+    <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">⚡ FlexForge <span id="appId" class="muted"></span></div>
+    <div class="topbar-right">
+        <a id="graphqlLink" href="/graphql/schema" target="_blank" class="ghost">GraphQL SDL</a>
+        <a id="openapiLink" href="/__meta/openapi.json" target="_blank" class="ghost">OpenAPI</a>
+        <span id="authBox"></span>
+    </div>
+</header>
+
+<div class="layout">
+    <aside class="sidebar">
+        <div class="sidebar-title">Entities</div>
+        <nav id="entityNav"></nav>
+        <div class="sidebar-title">API</div>
+        <div class="api-flags" id="apiFlags"></div>
+    </aside>
+
+    <main class="content">
+        <div id="banner" class="banner hidden"></div>
+
+        <section id="entityView" class="hidden">
+            <div class="view-head">
+                <h2 id="entityTitle"></h2>
+                <div class="actions">
+                    <input id="searchValue" class="search" placeholder="Search…"/>
+                    <select id="searchField" class="search-field"></select>
+                    <button id="searchBtn" class="btn">Search</button>
+                    <button id="newBtn" class="btn primary">+ New</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table id="dataTable"><thead></thead><tbody></tbody></table>
+            </div>
+            <div class="pager">
+                <button id="prevBtn" class="btn small">‹ Prev</button>
+                <span id="pageInfo" class="muted"></span>
+                <button id="nextBtn" class="btn small">Next ›</button>
+            </div>
+        </section>
+
+        <section id="welcome">
+            <h2>Welcome to FlexForge Admin</h2>
+            <p class="muted">This UI is generated entirely from the app's config metadata —
+                pick an entity on the left to browse and edit its data.</p>
+        </section>
+    </main>
+</div>
+
+<!-- Record editor modal -->
+<div id="modal" class="modal hidden">
+    <div class="modal-card">
+        <div class="modal-head"><h3 id="modalTitle"></h3><button id="modalClose" class="x">×</button></div>
+        <form id="recordForm" class="form"></form>
+        <div id="formError" class="form-error hidden"></div>
+        <div class="modal-foot">
+            <button id="cancelBtn" class="btn">Cancel</button>
+            <button id="saveBtn" class="btn primary">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Login modal -->
+<div id="loginModal" class="modal hidden">
+    <div class="modal-card small">
+        <div class="modal-head"><h3>Sign in</h3></div>
+        <form id="loginForm" class="form">
+            <label>Username<input id="loginUser" required/></label>
+            <label>Password<input id="loginPass" type="password" required/></label>
+        </form>
+        <div id="loginError" class="form-error hidden"></div>
+        <div class="modal-foot"><button id="loginBtn" class="btn primary">Sign in</button></div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
