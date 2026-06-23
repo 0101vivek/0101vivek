@@ -17,6 +17,17 @@ enforced identically across REST and GraphQL via one `AccessGuard`. Disabled by 
 on both protocols — proven by `SecurityIntegrationTest`. ✔
 *(Still to come here: OAuth2/OIDC, API keys, row-level rules — see v3.)*
 
+## ✅ v0.7 — App-builder essentials + admin UI (DONE)
+- Declarative **validation** (required/min/max/length/pattern/email)
+- **Operator search** (`_like`/`_gt`/`_gte`/`_lt`/`_lte`/`_ne`/`_in`)
+- **Relations** via `REFERENCE` fields with app-level integrity
+- **Auto timestamps** (`createdAt`/`updatedAt`)
+- **/__meta** + **OpenAPI** introspection
+- **Metadata-driven admin UI** (entity browser, generated forms, search, login)
+- **CORS**; architecture decision recorded (ADR 0001: modular monolith)
+**Threshold met:** a non-trivial app (Customer/Product/Order with a relation, validation,
+auth) is fully usable from the generated UI and APIs with no app code. ✔
+
 ## v1 — Production data layer + artifact packaging
 - Replace the hand-rolled dialect SQL with **Hibernate 6** (CRUD) + **jOOQ** (complex/dynamic
   queries); keep the `SqlDialect` seam.

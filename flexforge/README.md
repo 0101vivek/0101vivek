@@ -18,6 +18,20 @@ round-trip/merge problem because there is no hand-written source to overwrite.
 | **Clean regenerate loop** | Config is versioned + immutable; schema changes are additive-first with a destructive-change gate (full Liquibase expand/contract in v2). |
 | **One model, many protocols** | The **same metadata** is projected onto REST *and* GraphQL, both backed by the same generic CRUD service. gRPC / WebSocket / OData are roadmap surfaces that plug into the same core. |
 
+### What's implemented now
+
+- **Config-defined entities/fields** → tables auto-created on boot (additive sync)
+- **REST + GraphQL** from one model, plus an auto-generated **OpenAPI** spec
+- **Config-driven JWT auth** + per-entity read/write **role rules** (one `AccessGuard` for every protocol)
+- **Declarative validation** (required, min/max, minLength/maxLength, pattern, email)
+- **Operator search**: `?field_like=`, `_gt`, `_gte`, `_lt`, `_lte`, `_ne`, `_in`
+- **Relations** (`REFERENCE` fields) with app-level integrity — entities **connect**
+- **Auto timestamps** (`createdAt`/`updatedAt`) by convention
+- **Metadata-driven admin UI** at `/` — entity browser, generated CRUD forms, search, login
+- **Multi-DB** dialect layer (H2 / Postgres / MySQL), chosen at boot · **CORS** enabled
+
+Open **http://localhost:8080/** after starting for the admin UI.
+
 ## Run it (zero setup)
 
 ```bash
