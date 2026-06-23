@@ -61,6 +61,7 @@ public class MetaController {
                 putIfNotNull(fm, "min", f.min);
                 putIfNotNull(fm, "max", f.max);
                 putIfNotNull(fm, "pattern", f.pattern);
+                putIfNotNull(fm, "references", f.references);
                 fm.put("email", f.email);
                 fm.put("uiVisible", f.uiVisible);
                 fields.add(fm);

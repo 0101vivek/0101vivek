@@ -87,7 +87,10 @@ public class DynamicCrudService {
 
     public Map<String, Object> create(String entityName, Map<String, Object> data) {
         EntityConfig entity = registry.require(entityName);
+        data = new java.util.LinkedHashMap<>(data); // defensive copy; we may inject timestamps
         FieldValidator.validate(entity, data, true);
+        checkReferences(entity, data);
+        applyTimestamps(entity, data, true);
         String table = dialect.quote(Naming.tableName(entity));
         FieldConfig pk = requirePk(entity);
 
@@ -121,7 +124,10 @@ public class DynamicCrudService {
 
     public Map<String, Object> update(String entityName, Object id, Map<String, Object> data) {
         EntityConfig entity = registry.require(entityName);
+        data = new java.util.LinkedHashMap<>(data);
         FieldValidator.validate(entity, data, false);
+        checkReferences(entity, data);
+        applyTimestamps(entity, data, false);
         String table = dialect.quote(Naming.tableName(entity));
         FieldConfig pk = requirePk(entity);
 
@@ -250,6 +256,44 @@ public class DynamicCrudService {
         return value;
     }
 
+    /** App-level referential integrity: a REFERENCE value must point at an existing row. */
+    private void checkReferences(EntityConfig entity, Map<String, Object> data) {
+        List<String> errors = new ArrayList<>();
+        for (FieldConfig f : entity.fields) {
+            if (f.type != FieldType.REFERENCE || f.references == null) {
+                continue;
+            }
+            Object value = data.get(f.name);
+            if (value == null) {
+                continue;
+            }
+            try {
+                findById(f.references, value);
+            } catch (com.flexforge.engine.error.NotFoundException nf) {
+                errors.add(f.name + " references " + f.references + " " + value + " which does not exist");
+            }
+        }
+        if (!errors.isEmpty()) {
+            throw new com.flexforge.engine.error.ValidationException(errors);
+        }
+    }
+
+    /** Auto-manage createdAt/updatedAt TIMESTAMP fields by convention when present. */
+    private void applyTimestamps(EntityConfig entity, Map<String, Object> data, boolean create) {
+        java.sql.Timestamp now = java.sql.Timestamp.from(java.time.Instant.now());
+        if (create && hasTimestampField(entity, "createdAt") && data.get("createdAt") == null) {
+            data.put("createdAt", now);
+        }
+        if (hasTimestampField(entity, "updatedAt")) {
+            data.put("updatedAt", now);
+        }
+    }
+
+    private boolean hasTimestampField(EntityConfig entity, String name) {
+        FieldConfig f = entity.field(name);
+        return f != null && f.type == FieldType.TIMESTAMP;
+    }
+
     private FieldConfig requirePk(EntityConfig entity) {
         FieldConfig pk = entity.primaryKey();
         if (pk == null) {
@@ -276,11 +320,15 @@ public class DynamicCrudService {
         }
         return switch (f.type) {
             case INT -> value instanceof Number n ? n.intValue() : Integer.parseInt(value.toString());
-            case LONG -> value instanceof Number n ? n.longValue() : Long.parseLong(value.toString());
+            case LONG, REFERENCE ->
+                    value instanceof Number n ? n.longValue() : Long.parseLong(value.toString());
             case DOUBLE, DECIMAL ->
                     value instanceof Number n ? n.doubleValue() : Double.parseDouble(value.toString());
             case BOOLEAN -> value instanceof Boolean b ? b : Boolean.parseBoolean(value.toString());
             case JSON -> toJsonString(value);
+            // Pass temporal values through: a java.sql.Timestamp/Date stays as-is, and an
+            // ISO string is left for the JDBC driver to parse.
+            case TIMESTAMP, DATE -> value;
             default -> value.toString();
         };
     }

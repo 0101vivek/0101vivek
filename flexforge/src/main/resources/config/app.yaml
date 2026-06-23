@@ -45,8 +45,19 @@ entities:
       - { name: id,        type: LONG,    pk: true }
       - { name: sku,       type: STRING,  length: 64, unique: true, nullable: false }
       - { name: name,      type: STRING,  length: 200, nullable: false }
-      - { name: price,     type: DECIMAL }
+      - { name: price,     type: DECIMAL, min: 0 }
       - { name: inStock,   type: BOOLEAN }
+
+  # An Order links to a Customer (REFERENCE) and auto-manages its timestamps.
+  - name: Order
+    idStrategy: IDENTITY
+    fields:
+      - { name: id,         type: LONG,      pk: true }
+      - { name: customerId, type: REFERENCE, references: Customer, nullable: false }
+      - { name: total,      type: DECIMAL,   min: 0 }
+      - { name: status,     type: STRING,    length: 30 }
+      - { name: createdAt,  type: TIMESTAMP }
+      - { name: updatedAt,  type: TIMESTAMP }
 
 migrationPolicy:
   additive: auto

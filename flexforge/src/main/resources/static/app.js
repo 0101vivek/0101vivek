@@ -166,6 +166,11 @@
         input = el('input'); input.type = 'number'; if (value != null) input.value = value;
         if (f.min != null) input.min = f.min; if (f.max != null) input.max = f.max;
         break;
+      case 'REFERENCE':
+        input = el('select');
+        input.innerHTML = '<option value="">—</option>';
+        populateReference(input, f.references, value);
+        break;
       case 'DATE':
         input = el('input'); input.type = 'date'; if (value != null) input.value = String(value).slice(0, 10);
         break;
@@ -184,6 +189,23 @@
     return label;
   }
 
+  async function populateReference(select, targetName, selected) {
+    const target = state.meta.entities.find((e) => e.name === targetName);
+    if (!target) return;
+    const pk = target.fields.find((f) => f.pk);
+    const labelField = target.fields.find((f) => !f.pk && (f.type === 'STRING' || f.type === 'TEXT'));
+    try {
+      const res = await api(`/api/${targetName}?size=100`);
+      (res.content || []).forEach((row) => {
+        const o = el('option');
+        o.value = row[pk.name];
+        o.textContent = labelField ? `${row[labelField.name]} (#${row[pk.name]})` : `#${row[pk.name]}`;
+        if (selected != null && String(selected) === String(row[pk.name])) o.selected = true;
+        select.appendChild(o);
+      });
+    } catch (e) { /* leave just the placeholder if target not readable */ }
+  }
+
   function collectForm() {
     const body = {};
     $('recordForm').querySelectorAll('[data-field]').forEach((inp) => {
@@ -191,7 +213,7 @@
       if (v === '' || v === null) return;
       const t = inp.dataset.ftype;
       if (t === 'BOOLEAN') v = (v === 'true');
-      else if (['INT', 'LONG'].includes(t)) v = parseInt(v, 10);
+      else if (['INT', 'LONG', 'REFERENCE'].includes(t)) v = parseInt(v, 10);
       else if (['DOUBLE', 'DECIMAL'].includes(t)) v = parseFloat(v);
       body[inp.dataset.field] = v;
     });

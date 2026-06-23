@@ -23,6 +23,7 @@ public class PostgresDialect implements SqlDialect {
             case DATE -> "DATE";
             case TIMESTAMP -> "TIMESTAMP";
             case JSON -> "JSONB";
+            case REFERENCE -> "BIGINT";
         };
     }
 

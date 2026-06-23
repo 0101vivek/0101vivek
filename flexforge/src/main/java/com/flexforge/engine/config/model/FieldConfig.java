@@ -45,4 +45,7 @@ public class FieldConfig {
 
     /** Whether this field is shown/managed in the generated UI (default true). */
     public boolean uiVisible = true;
+
+    /** For REFERENCE fields: the target entity name this field links to. */
+    public String references;
 }

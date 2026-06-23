@@ -15,5 +15,7 @@ public enum FieldType {
     BOOLEAN,
     DATE,
     TIMESTAMP,
-    JSON
+    JSON,
+    /** Foreign-key style link to another entity's primary key (see FieldConfig.references). */
+    REFERENCE
 }

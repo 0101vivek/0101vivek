@@ -23,6 +23,7 @@ public class MySqlDialect implements SqlDialect {
             case DATE -> "DATE";
             case TIMESTAMP -> "DATETIME";
             case JSON -> "JSON";
+            case REFERENCE -> "BIGINT";
         };
     }
 
