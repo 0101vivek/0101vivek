@@ -34,7 +34,8 @@ entities:
       - { name: id,        type: LONG,    pk: true }
       - { name: email,     type: STRING,  length: 255, unique: true, nullable: false, email: true }
       - { name: fullName,  type: STRING,  length: 200, minLength: 2 }
-      - { name: tier,      type: STRING,  length: 30 }
+      - { name: tier,      type: SELECT,  options: [gold, silver, bronze, platinum] }
+      - { name: channels,  type: MULTISELECT, options: [email, sms, push, whatsapp] }
       - { name: active,    type: BOOLEAN }
       - { name: profile,   type: JSON }
       - { name: ssn,       type: TEXT,    encrypted: true }   # stored AES-256-GCM encrypted
@@ -146,6 +147,41 @@ flows:
       - id: done
         type: respond
         params: { body: { sum: "${steps.sum.result}", name: "${steps.upper.result}", id: "${steps.id.result}" } }
+
+  - name: double           # sub-flow target: doubles input.item
+    steps:
+      - id: calc
+        type: math
+        params: { op: multiply, a: "${input.item}", b: 2 }
+        next: out
+      - id: out
+        type: respond
+        params: { body: { value: "${steps.calc.result}" } }
+
+  - name: batch            # loop: run 'double' for each number
+    steps:
+      - id: loop
+        type: loop
+        params: { items: "${input.numbers}", flow: double }
+        next: done
+      - id: done
+        type: respond
+        params: { body: { count: "${steps.loop.count}", results: "${steps.loop.results}" } }
+
+  - name: route            # switch: multi-way branch on input.kind
+    steps:
+      - id: sw
+        type: switch
+        params: { value: "${input.kind}", cases: { a: stepA, b: stepB }, default: stepDefault }
+      - id: stepA
+        type: respond
+        params: { body: { path: "A" } }
+      - id: stepB
+        type: respond
+        params: { body: { path: "B" } }
+      - id: stepDefault
+        type: respond
+        params: { body: { path: "default" } }
 
   - name: assist            # AI step + notification (AI runs in stub mode w/o a key)
     steps:

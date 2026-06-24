@@ -57,6 +57,8 @@ public class FlowEngine {
             }
             current = switch (step.type) {
                 case "condition" -> Boolean.TRUE.equals(output) ? step.then : step.elseStep;
+                // a switch step returns the id of the next step to jump to (or null to fall through)
+                case "switch" -> output instanceof String s ? s : (step.next != null ? step.next : flow.stepAfter(step.id));
                 default -> step.next != null ? step.next : flow.stepAfter(step.id);
             };
         }

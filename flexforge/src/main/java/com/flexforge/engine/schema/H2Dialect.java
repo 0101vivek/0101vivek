@@ -25,6 +25,8 @@ public class H2Dialect implements SqlDialect {
             case JSON -> "VARCHAR(8192)";
             case REFERENCE -> "BIGINT";
             case FILE -> "CLOB";
+            case SELECT -> "VARCHAR(" + (length == null ? 255 : length) + ")";
+            case MULTISELECT -> "VARCHAR(2048)";
         };
     }
 

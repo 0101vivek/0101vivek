@@ -25,6 +25,8 @@ public class MySqlDialect implements SqlDialect {
             case JSON -> "JSON";
             case REFERENCE -> "BIGINT";
             case FILE -> "LONGTEXT";
+            case SELECT -> "VARCHAR(" + (length == null ? 255 : length) + ")";
+            case MULTISELECT -> "VARCHAR(2048)";
         };
     }
 

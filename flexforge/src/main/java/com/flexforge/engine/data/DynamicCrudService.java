@@ -350,6 +350,9 @@ public class DynamicCrudService {
                     value instanceof Number n ? n.doubleValue() : Double.parseDouble(value.toString());
             case BOOLEAN -> value instanceof Boolean b ? b : Boolean.parseBoolean(value.toString());
             case JSON -> toJsonString(value);
+            case MULTISELECT -> value instanceof java.util.List<?> list
+                    ? String.join(",", list.stream().map(String::valueOf).toList())
+                    : value.toString();
             // Pass temporal values through: a java.sql.Timestamp/Date stays as-is, and an
             // ISO string is left for the JDBC driver to parse.
             case TIMESTAMP, DATE -> value;

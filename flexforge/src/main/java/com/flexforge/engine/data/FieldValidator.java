@@ -48,7 +48,40 @@ public final class FieldValidator {
         }
     }
 
+    private static List<String> toList(Object value) {
+        if (value instanceof List<?> list) {
+            List<String> out = new ArrayList<>();
+            for (Object o : list) {
+                out.add(String.valueOf(o));
+            }
+            return out;
+        }
+        List<String> out = new ArrayList<>();
+        for (String part : value.toString().split(",")) {
+            if (!part.isBlank()) {
+                out.add(part.trim());
+            }
+        }
+        return out;
+    }
+
     private static void validateValue(FieldConfig f, Object value, List<String> errors) {
+        if (f.type == com.flexforge.engine.config.model.FieldType.SELECT
+                && f.options != null && !f.options.isEmpty()) {
+            if (!f.options.contains(value.toString())) {
+                errors.add(f.name + " must be one of " + f.options);
+            }
+            return;
+        }
+        if (f.type == com.flexforge.engine.config.model.FieldType.MULTISELECT
+                && f.options != null && !f.options.isEmpty()) {
+            for (Object item : toList(value)) {
+                if (!f.options.contains(String.valueOf(item).trim())) {
+                    errors.add(f.name + " contains '" + item + "' not in " + f.options);
+                }
+            }
+            return;
+        }
         String s = value.toString();
 
         if (f.minLength != null && s.length() < f.minLength) {

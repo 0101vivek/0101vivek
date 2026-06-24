@@ -176,6 +176,12 @@
       case 'BOOLEAN': input = el('select'); input.innerHTML = '<option value="">—</option><option>true</option><option>false</option>';
         if (value != null) input.value = String(value); break;
       case 'FILE': input = el('input'); input.type = 'file'; break;
+      case 'SELECT': input = el('select');
+        input.innerHTML = '<option value="">—</option>' + (f.options || []).map((o) =>
+          `<option ${String(value) === o ? 'selected' : ''}>${o}</option>`).join(''); break;
+      case 'MULTISELECT': input = el('input'); input.type = 'text'; input.placeholder = 'comma,separated';
+        if (value != null) input.value = Array.isArray(value) ? value.join(',') : value;
+        if ((f.options || []).length) input.title = 'Options: ' + f.options.join(', '); break;
       case 'REFERENCE': input = el('select'); input.innerHTML = '<option value="">—</option>'; populateReference(input, f.references, value); break;
       case 'TEXT': case 'JSON': input = el('textarea'); input.rows = 3; if (value != null) input.value = value; break;
       case 'INT': case 'LONG': case 'DOUBLE': case 'DECIMAL': input = el('input'); input.type = 'number';

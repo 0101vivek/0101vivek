@@ -25,6 +25,8 @@ public class PostgresDialect implements SqlDialect {
             case JSON -> "JSONB";
             case REFERENCE -> "BIGINT";
             case FILE -> "TEXT";
+            case SELECT -> "VARCHAR(" + (length == null ? 255 : length) + ")";
+            case MULTISELECT -> "VARCHAR(2048)";
         };
     }
 

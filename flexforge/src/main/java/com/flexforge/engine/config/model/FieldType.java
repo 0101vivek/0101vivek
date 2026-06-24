@@ -19,5 +19,9 @@ public enum FieldType {
     /** Foreign-key style link to another entity's primary key (see FieldConfig.references). */
     REFERENCE,
     /** Stored file/image/document: JSON metadata + base64 content, served via the file API. */
-    FILE
+    FILE,
+    /** Single choice from FieldConfig.options. */
+    SELECT,
+    /** Multiple choices from FieldConfig.options (stored comma-separated). */
+    MULTISELECT
 }

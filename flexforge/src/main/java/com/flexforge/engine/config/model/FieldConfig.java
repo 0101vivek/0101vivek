@@ -52,4 +52,7 @@ public class FieldConfig {
     /** When true, the value is stored AES-256-GCM encrypted at rest and decrypted on read.
      *  Use with STRING/TEXT (ciphertext is longer than plaintext — prefer TEXT). */
     public boolean encrypted = false;
+
+    /** Allowed values for SELECT / MULTISELECT fields. */
+    public java.util.List<String> options = new java.util.ArrayList<>();
 }

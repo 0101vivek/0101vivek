@@ -62,6 +62,9 @@ public class MetaController {
                 putIfNotNull(fm, "max", f.max);
                 putIfNotNull(fm, "pattern", f.pattern);
                 putIfNotNull(fm, "references", f.references);
+                if (f.options != null && !f.options.isEmpty()) {
+                    fm.put("options", f.options);
+                }
                 fm.put("email", f.email);
                 fm.put("encrypted", f.encrypted);
                 fm.put("uiVisible", f.uiVisible);
