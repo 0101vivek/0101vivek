@@ -72,6 +72,26 @@ security:
   enabled: false              # demo is open; flip to true + add users/rules to lock it
   encryptionKey: ${ENCRYPTION_KEY}   # falls back to a dev key if unset
 
+# Custom flow endpoints (no code) — method + required headers/params + an action.
+endpoints:
+  - name: ping
+    method: GET
+    requiredParams: [who]
+    action:
+      type: json
+      body: { message: "pong" }
+  - name: docs
+    method: GET
+    action:
+      type: redirect
+      url: /__meta/openapi.json
+  - name: notify
+    method: POST
+    requiredHeaders: [X-API-Key]
+    action:
+      type: json
+      body: { accepted: true }
+
 migrationPolicy:
   additive: auto
   destructive: require_approval

@@ -31,6 +31,18 @@ public class AppConfig {
     /** Config-driven authentication & authorization (JWT). Disabled by default. */
     public SecurityConfig security = new SecurityConfig();
 
+    /** Custom endpoints beyond CRUD (redirects, static responses, webhooks). */
+    public List<EndpointConfig> endpoints = new ArrayList<>();
+
+    public EndpointConfig endpoint(String name) {
+        for (EndpointConfig e : endpoints) {
+            if (e.name != null && e.name.equalsIgnoreCase(name)) {
+                return e;
+            }
+        }
+        return null;
+    }
+
     /** How schema changes are applied across regenerations. */
     public MigrationPolicy migrationPolicy = new MigrationPolicy();
 
