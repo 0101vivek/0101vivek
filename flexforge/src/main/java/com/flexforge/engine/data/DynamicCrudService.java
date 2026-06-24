@@ -72,6 +72,7 @@ public class DynamicCrudService {
         params.addValue("offset", Math.max(0, opts.page) * Math.max(1, opts.size));
 
         List<Map<String, Object>> rows = jdbc.query(sql.toString(), params, (rs, n) -> readRow(entity, rs));
+        rows.forEach(r -> enrichComputed(entity, r));
         return new Page(rows, total, opts.page, opts.size);
     }
 
@@ -125,6 +126,7 @@ public class DynamicCrudService {
         if (rows.isEmpty()) {
             throw new NotFoundException(entity.name + " with id " + id + " not found");
         }
+        enrichComputed(entity, rows.get(0));
         return rows.get(0);
     }
 
@@ -309,6 +311,81 @@ public class DynamicCrudService {
             }
         }
         return row;
+    }
+
+    /** Compute LOOKUP/ROLLUP fields for a row via direct queries (after the main read). */
+    private void enrichComputed(EntityConfig entity, Map<String, Object> row) {
+        for (FieldConfig f : entity.fields) {
+            try {
+                if (f.type == FieldType.LOOKUP) {
+                    row.put(f.name, computeLookup(entity, f, row));
+                } else if (f.type == FieldType.ROLLUP) {
+                    row.put(f.name, computeRollup(entity, f, row));
+                }
+            } catch (Exception e) {
+                row.put(f.name, null); // never let a computed field break a read
+            }
+        }
+    }
+
+    private Object computeLookup(EntityConfig entity, FieldConfig f, Map<String, Object> row) {
+        FieldConfig refField = entity.field(f.reference);
+        if (refField == null || refField.references == null) {
+            return null;
+        }
+        Object fkId = row.get(f.reference);
+        if (fkId == null) {
+            return null;
+        }
+        EntityConfig target = registry.config().entity(refField.references);
+        if (target == null) {
+            return null;
+        }
+        FieldConfig targetPk = target.primaryKey();
+        FieldConfig targetField = target.field(f.field);
+        if (targetPk == null || targetField == null) {
+            return null;
+        }
+        String sql = "SELECT " + dialect.quote(Naming.columnName(targetField)) + " AS v FROM "
+                + dialect.quote(Naming.tableName(target)) + " WHERE "
+                + dialect.quote(Naming.columnName(targetPk)) + " = :id";
+        return scalar(sql, coerce(targetPk, fkId));
+    }
+
+    private Object computeRollup(EntityConfig entity, FieldConfig f, Map<String, Object> row) {
+        EntityConfig child = registry.config().entity(f.from);
+        FieldConfig thisPk = entity.primaryKey();
+        if (child == null || thisPk == null) {
+            return 0;
+        }
+        FieldConfig viaField = child.field(f.via);
+        Object thisId = row.get(thisPk.name);
+        if (viaField == null || thisId == null) {
+            return 0;
+        }
+        String o = f.op == null ? "count" : f.op.toLowerCase();
+        String aggExpr;
+        if (o.equals("count")) {
+            aggExpr = "COUNT(*)";
+        } else {
+            FieldConfig cf = child.field(f.field);
+            if (cf == null) {
+                return 0;
+            }
+            aggExpr = o.toUpperCase() + "(" + dialect.quote(Naming.columnName(cf)) + ")";
+        }
+        String sql = "SELECT " + aggExpr + " AS v FROM " + dialect.quote(Naming.tableName(child))
+                + " WHERE " + dialect.quote(Naming.columnName(viaField)) + " = :id";
+        Object v = scalar(sql, coerce(viaField, thisId));
+        return v == null ? 0 : v;
+    }
+
+    private Object scalar(String sql, Object id) {
+        try {
+            return jdbc.queryForObject(sql, new MapSqlParameterSource("id", id), Object.class);
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     /** Coerce then (if configured) encrypt a value on its way into the database. */

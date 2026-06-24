@@ -59,7 +59,7 @@
                 "name": { "type": "string", "minLength": 1 },
                 "type": {
                   "type": "string",
-                  "enum": ["STRING", "TEXT", "INT", "LONG", "DOUBLE", "DECIMAL", "BOOLEAN", "DATE", "TIMESTAMP", "JSON", "REFERENCE", "FILE", "SELECT", "MULTISELECT", "FORMULA"]
+                  "enum": ["STRING", "TEXT", "INT", "LONG", "DOUBLE", "DECIMAL", "BOOLEAN", "DATE", "TIMESTAMP", "JSON", "REFERENCE", "FILE", "SELECT", "MULTISELECT", "FORMULA", "LOOKUP", "ROLLUP"]
                 },
                 "pk": { "type": "boolean" },
                 "unique": { "type": "boolean" },
@@ -76,7 +76,12 @@
                 "uiVisible": { "type": "boolean" },
                 "references": { "type": "string" },
                 "options": { "type": "array", "items": { "type": "string" } },
-                "formula": { "type": "string" }
+                "formula": { "type": "string" },
+                "reference": { "type": "string" },
+                "field": { "type": "string" },
+                "from": { "type": "string" },
+                "via": { "type": "string" },
+                "op": { "type": "string" }
               }
             }
           }

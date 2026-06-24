@@ -59,8 +59,23 @@ public class FieldConfig {
     /** For FORMULA fields: a ${field} template computed on read, e.g. "${tier} - ${fullName}". */
     public String formula;
 
-    /** Whether this field is stored in the database (false for FORMULA). */
+    /** LOOKUP: name of the REFERENCE field on this entity to follow. */
+    public String reference;
+
+    /** LOOKUP: field on the referenced entity to pull. ROLLUP: child field to aggregate. */
+    public String field;
+
+    /** ROLLUP: child entity name. */
+    public String from;
+
+    /** ROLLUP: the REFERENCE field on the child entity that points back to this entity. */
+    public String via;
+
+    /** ROLLUP: count | sum | avg | min | max. */
+    public String op;
+
+    /** Whether this field is stored in the database (false for FORMULA/LOOKUP/ROLLUP). */
     public boolean isStored() {
-        return type != FieldType.FORMULA;
+        return type != FieldType.FORMULA && type != FieldType.LOOKUP && type != FieldType.ROLLUP;
     }
 }

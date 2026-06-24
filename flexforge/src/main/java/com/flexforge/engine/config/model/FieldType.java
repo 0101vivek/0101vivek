@@ -25,5 +25,9 @@ public enum FieldType {
     /** Multiple choices from FieldConfig.options (stored comma-separated). */
     MULTISELECT,
     /** Not stored; computed on read from FieldConfig.formula (a ${field} template). */
-    FORMULA
+    FORMULA,
+    /** Not stored; pulls a field from a referenced record (FieldConfig.reference + field). */
+    LOOKUP,
+    /** Not stored; aggregates child records that reference this one (from/via/op/field). */
+    ROLLUP
 }

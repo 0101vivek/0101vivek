@@ -66,6 +66,11 @@ public class MetaController {
                     fm.put("options", f.options);
                 }
                 putIfNotNull(fm, "formula", f.formula);
+                putIfNotNull(fm, "reference", f.reference);
+                putIfNotNull(fm, "field", f.field);
+                putIfNotNull(fm, "from", f.from);
+                putIfNotNull(fm, "via", f.via);
+                putIfNotNull(fm, "op", f.op);
                 fm.put("email", f.email);
                 fm.put("encrypted", f.encrypted);
                 fm.put("uiVisible", f.uiVisible);

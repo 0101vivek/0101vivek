@@ -40,6 +40,8 @@ entities:
       - { name: profile,   type: JSON }
       - { name: ssn,       type: TEXT,    encrypted: true }   # stored AES-256-GCM encrypted
       - { name: label,     type: FORMULA, formula: "${tier} · ${fullName}" }   # computed on read
+      - { name: orderCount, type: ROLLUP, from: Order, via: customerId, op: count }
+      - { name: orderTotal, type: ROLLUP, from: Order, via: customerId, op: sum, field: total }
       - { name: createdAt, type: TIMESTAMP }
 
   - name: Product
@@ -57,6 +59,7 @@ entities:
     fields:
       - { name: id,         type: LONG,      pk: true }
       - { name: customerId, type: REFERENCE, references: Customer, nullable: false }
+      - { name: customerEmail, type: LOOKUP, reference: customerId, field: email }
       - { name: total,      type: DECIMAL,   min: 0 }
       - { name: status,     type: STRING,    length: 30 }
       - { name: createdAt,  type: TIMESTAMP }
