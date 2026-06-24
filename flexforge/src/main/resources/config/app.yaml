@@ -129,6 +129,24 @@ flows:
         type: respond
         params: { body: { result: "fail" } }
 
+  - name: toolbox          # standard-library steps: math + string + crypto
+    steps:
+      - id: sum
+        type: math
+        params: { op: add, a: "${input.x}", b: "${input.y}" }
+        next: upper
+      - id: upper
+        type: string
+        params: { op: upper, value: "${input.name}" }
+        next: id
+      - id: id
+        type: crypto
+        params: { op: uuid }
+        next: done
+      - id: done
+        type: respond
+        params: { body: { sum: "${steps.sum.result}", name: "${steps.upper.result}", id: "${steps.id.result}" } }
+
   - name: assist            # AI step + notification (AI runs in stub mode w/o a key)
     steps:
       - id: think
