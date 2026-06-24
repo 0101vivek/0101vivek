@@ -1,0 +1,144 @@
+# =============================================================================
+# Example: a complete NBFC LENDING application — built ENTIRELY in config.
+# No Java written. Run it with:
+#   FLEXFORGE_CONFIG_PATH=examples/lending-app.yaml mvn spring-boot:run
+# Then open http://localhost:8080/  (the Console renders this app automatically)
+#
+# Demonstrates: entities, relations (REFERENCE), validation, field encryption,
+# file/KYC upload, config-driven auth + role rules, and no-code flows (apply,
+# score, disburse) — i.e. how YOU build a real app on FlexForge.
+# =============================================================================
+appId: nbfc-lending
+configVersion: "1.0.0"
+engineVersion: "0.1.x"
+
+database:
+  engine: ${DB_ENGINE}          # blank -> in-memory H2 (zero setup)
+  url: ${DB_URL}
+  username: ${DB_USERNAME}
+  password: ${DB_PASSWORD}
+
+api:
+  rest: { enabled: true }
+  graphql: { enabled: true }
+
+# ---- AUTH (config-driven). Flip enabled:true to lock the app. ----
+security:
+  enabled: false
+  jwtSecret: ${JWT_SECRET}
+  encryptionKey: ${ENCRYPTION_KEY}
+  users:
+    - { username: officer, password: officer123, roles: [OFFICER] }
+    - { username: manager, password: manager123, roles: [MANAGER] }
+  rules:
+    LoanApplication:
+      read:  [OFFICER, MANAGER]
+      write: [OFFICER]                 # officers create; managers approve via flow
+    Disbursement:
+      write: [MANAGER]                  # only managers can disburse
+
+# ---- DATA MODEL ----
+entities:
+  - name: Borrower
+    fields:
+      - { name: id,        type: LONG,    pk: true }
+      - { name: fullName,  type: STRING,  length: 200, nullable: false, minLength: 2 }
+      - { name: email,     type: STRING,  length: 255, email: true }
+      - { name: phone,     type: STRING,  length: 15, pattern: "^[0-9]{10,15}$" }
+      - { name: pan,       type: STRING,  length: 64, encrypted: true }   # PII encrypted at rest
+      - { name: kycDoc,    type: FILE }                                   # uploaded ID document
+      - { name: createdAt, type: TIMESTAMP }
+
+  - name: LoanProduct
+    fields:
+      - { name: id,            type: LONG,    pk: true }
+      - { name: name,          type: STRING,  length: 120, nullable: false }
+      - { name: interestRate,  type: DOUBLE,  min: 0, max: 60 }
+      - { name: maxAmount,     type: DECIMAL, min: 1000 }
+      - { name: tenureMonths,  type: INT,     min: 1, max: 360 }
+
+  - name: LoanApplication
+    fields:
+      - { name: id,          type: LONG,      pk: true }
+      - { name: borrowerId,  type: REFERENCE, references: Borrower,    nullable: false }
+      - { name: productId,   type: REFERENCE, references: LoanProduct, nullable: false }
+      - { name: amount,      type: DECIMAL,   min: 1000, nullable: false }
+      - { name: score,       type: INT }
+      - { name: status,      type: STRING,    length: 20 }     # SUBMITTED|APPROVED|REJECTED
+      - { name: createdAt,   type: TIMESTAMP }
+      - { name: updatedAt,   type: TIMESTAMP }
+
+  - name: Disbursement
+    fields:
+      - { name: id,            type: LONG,      pk: true }
+      - { name: applicationId, type: REFERENCE, references: LoanApplication, nullable: false }
+      - { name: amount,        type: DECIMAL,   min: 1 }
+      - { name: disbursedAt,   type: TIMESTAMP }
+
+  - name: Repayment
+    fields:
+      - { name: id,            type: LONG,      pk: true }
+      - { name: applicationId, type: REFERENCE, references: LoanApplication, nullable: false }
+      - { name: dueDate,       type: DATE }
+      - { name: amount,        type: DECIMAL,   min: 1 }
+      - { name: paid,          type: BOOLEAN }
+
+# ---- BUSINESS LOGIC AS NO-CODE FLOWS ----
+flows:
+  # Submit an application: create the record, then auto-decision on amount.
+  - name: applyLoan
+    steps:
+      - id: create
+        type: db
+        params:
+          op: create
+          entity: LoanApplication
+          data:
+            borrowerId: "${input.borrowerId}"
+            productId:  "${input.productId}"
+            amount:     "${input.amount}"
+            status:     "SUBMITTED"
+        next: decide
+      - id: decide
+        type: condition
+        params: { left: "${input.amount}", op: "<=", right: 200000 }
+        then: approve
+        else: review
+      - id: approve
+        type: db
+        params: { op: update, entity: LoanApplication, id: "${steps.create.id}", data: { status: "APPROVED", score: 750 } }
+        next: notifyOk
+      - id: notifyOk
+        type: notify
+        params: { channel: log, to: "ops@nbfc", subject: "Loan auto-approved", message: "Application ${steps.create.id} approved" }
+        next: doneOk
+      - id: doneOk
+        type: respond
+        params: { body: { applicationId: "${steps.create.id}", status: "APPROVED" } }
+      - id: review
+        type: respond
+        params: { status: 200, body: { applicationId: "${steps.create.id}", status: "MANUAL_REVIEW" } }
+
+  # EMI estimate (math step): principal * (1 + rate/100) / months
+  - name: emiEstimate
+    steps:
+      - id: withInterest
+        type: math
+        params: { op: multiply, a: "${input.amount}", b: 1.12 }
+        next: emi
+      - id: emi
+        type: math
+        params: { op: divide, a: "${steps.withInterest.result}", b: "${input.months}" }
+        next: done
+      - id: done
+        type: respond
+        params: { body: { monthlyEMI: "${steps.emi.result}" } }
+
+endpoints:
+  - name: health
+    method: GET
+    action: { type: json, body: { app: "nbfc-lending", ok: true } }
+
+migrationPolicy:
+  additive: auto
+  destructive: require_approval
