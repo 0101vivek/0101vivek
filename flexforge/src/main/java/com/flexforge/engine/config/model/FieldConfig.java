@@ -55,4 +55,12 @@ public class FieldConfig {
 
     /** Allowed values for SELECT / MULTISELECT fields. */
     public java.util.List<String> options = new java.util.ArrayList<>();
+
+    /** For FORMULA fields: a ${field} template computed on read, e.g. "${tier} - ${fullName}". */
+    public String formula;
+
+    /** Whether this field is stored in the database (false for FORMULA). */
+    public boolean isStored() {
+        return type != FieldType.FORMULA;
+    }
 }

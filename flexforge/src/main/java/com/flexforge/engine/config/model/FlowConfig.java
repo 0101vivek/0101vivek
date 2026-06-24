@@ -16,6 +16,9 @@ public class FlowConfig {
     /** Optional id of the first step; defaults to the first in the list. */
     public String start;
 
+    /** How the flow is triggered (manual by default, or schedule/cron). */
+    public TriggerConfig trigger = new TriggerConfig();
+
     public List<StepConfig> steps = new ArrayList<>();
 
     public StepConfig step(String id) {

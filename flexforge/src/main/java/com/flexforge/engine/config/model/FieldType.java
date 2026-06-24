@@ -23,5 +23,7 @@ public enum FieldType {
     /** Single choice from FieldConfig.options. */
     SELECT,
     /** Multiple choices from FieldConfig.options (stored comma-separated). */
-    MULTISELECT
+    MULTISELECT,
+    /** Not stored; computed on read from FieldConfig.formula (a ${field} template). */
+    FORMULA
 }

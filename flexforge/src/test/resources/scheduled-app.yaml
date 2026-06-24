@@ -1,0 +1,21 @@
+# Isolated test bundle: a flow that runs automatically on a fixed schedule.
+appId: scheduled-demo
+configVersion: "0.1.0"
+
+entities:
+  - name: Ticker
+    fields:
+      - { name: id,   type: LONG, pk: true }
+      - { name: note, type: STRING, length: 50 }
+
+flows:
+  - name: heartbeat
+    trigger: { type: schedule, fixedRateMs: 500 }
+    steps:
+      - id: ping
+        type: notify
+        params: { channel: log, subject: "heartbeat", message: "tick" }
+        next: done
+      - id: done
+        type: respond
+        params: { body: { ok: true } }

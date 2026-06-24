@@ -29,8 +29,8 @@ public final class FieldValidator {
     public static void validate(EntityConfig entity, Map<String, Object> data, boolean create) {
         List<String> errors = new ArrayList<>();
         for (FieldConfig f : entity.fields) {
-            if (f.pk) {
-                continue;
+            if (f.pk || !f.isStored()) {
+                continue; // FORMULA fields are computed, never written
             }
             boolean present = data.containsKey(f.name) && data.get(f.name) != null;
 

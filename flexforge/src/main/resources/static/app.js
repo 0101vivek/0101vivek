@@ -164,7 +164,7 @@
     state.editingId = row ? row[pk.name] : null;
     $('modalTitle').textContent = (row ? 'Edit ' : 'New ') + em.name;
     const form = $('recordForm'); form.innerHTML = '';
-    em.fields.forEach((f) => { if (!f.pk && f.uiVisible !== false) form.appendChild(fieldInput(f, row ? row[f.name] : null)); });
+    em.fields.forEach((f) => { if (!f.pk && f.uiVisible !== false && f.type !== 'FORMULA') form.appendChild(fieldInput(f, row ? row[f.name] : null)); });
     hideFormError(); show('modal');
   }
 

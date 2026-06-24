@@ -39,6 +39,7 @@ entities:
       - { name: active,    type: BOOLEAN }
       - { name: profile,   type: JSON }
       - { name: ssn,       type: TEXT,    encrypted: true }   # stored AES-256-GCM encrypted
+      - { name: label,     type: FORMULA, formula: "${tier} · ${fullName}" }   # computed on read
       - { name: createdAt, type: TIMESTAMP }
 
   - name: Product

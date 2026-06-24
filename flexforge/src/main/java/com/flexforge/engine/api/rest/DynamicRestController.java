@@ -112,6 +112,18 @@ public class DynamicRestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(crud.create(entity, body));
     }
 
+    @PostMapping("/{entity}/bulk")
+    public ResponseEntity<java.util.List<Map<String, Object>>> bulkCreate(
+            @PathVariable String entity, @RequestBody java.util.List<Map<String, Object>> bodies) {
+        guard(entity);
+        accessGuard.requireWrite(entity);
+        java.util.List<Map<String, Object>> created = new java.util.ArrayList<>();
+        for (Map<String, Object> body : bodies) {
+            created.add(crud.create(entity, body));
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
     @PutMapping("/{entity}/{id}")
     public Map<String, Object> update(@PathVariable String entity, @PathVariable String id,
                                       @RequestBody Map<String, Object> body) {

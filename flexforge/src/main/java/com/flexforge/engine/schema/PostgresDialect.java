@@ -27,6 +27,7 @@ public class PostgresDialect implements SqlDialect {
             case FILE -> "TEXT";
             case SELECT -> "VARCHAR(" + (length == null ? 255 : length) + ")";
             case MULTISELECT -> "VARCHAR(2048)";
+            case FORMULA -> "VARCHAR(1)"; // not stored; never used (schema skips FORMULA)
         };
     }
 

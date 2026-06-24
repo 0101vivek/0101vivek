@@ -65,6 +65,7 @@ public class MetaController {
                 if (f.options != null && !f.options.isEmpty()) {
                     fm.put("options", f.options);
                 }
+                putIfNotNull(fm, "formula", f.formula);
                 fm.put("email", f.email);
                 fm.put("encrypted", f.encrypted);
                 fm.put("uiVisible", f.uiVisible);

@@ -64,6 +64,9 @@ public class SchemaManager {
                 .append(" (");
         boolean first = true;
         for (FieldConfig f : entity.fields) {
+            if (!f.isStored()) {
+                continue; // FORMULA fields are computed on read, not stored
+            }
             if (!first) {
                 ddl.append(", ");
             }
@@ -78,6 +81,9 @@ public class SchemaManager {
     private void addMissingColumns(EntityConfig entity, Set<String> existing) {
         String table = Naming.tableName(entity);
         for (FieldConfig f : entity.fields) {
+            if (!f.isStored()) {
+                continue;
+            }
             String col = Naming.columnName(f);
             if (!existing.contains(col.toLowerCase())) {
                 if (f.pk) {
@@ -97,7 +103,9 @@ public class SchemaManager {
         String table = Naming.tableName(entity);
         Set<String> declared = new LinkedHashSet<>();
         for (FieldConfig f : entity.fields) {
-            declared.add(Naming.columnName(f).toLowerCase());
+            if (f.isStored()) {
+                declared.add(Naming.columnName(f).toLowerCase());
+            }
         }
         for (String dbCol : existing) {
             if (!declared.contains(dbCol)) {
