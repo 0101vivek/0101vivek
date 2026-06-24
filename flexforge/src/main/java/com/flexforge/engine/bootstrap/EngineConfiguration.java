@@ -161,8 +161,9 @@ public class EngineConfiguration {
                                                  MetadataRegistry registry,
                                                  SqlDialect dialect,
                                                  ObjectMapper objectMapper,
-                                                 com.flexforge.engine.crypto.EncryptionService encryption) {
-        return new DynamicCrudService(jdbc, registry, dialect, objectMapper, encryption);
+                                                 com.flexforge.engine.crypto.EncryptionService encryption,
+                                                 org.springframework.context.ApplicationEventPublisher events) {
+        return new DynamicCrudService(jdbc, registry, dialect, objectMapper, encryption, events);
     }
 
     @Bean

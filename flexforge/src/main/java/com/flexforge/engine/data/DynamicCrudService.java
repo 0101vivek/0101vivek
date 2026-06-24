@@ -33,15 +33,18 @@ public class DynamicCrudService {
     private final SqlDialect dialect;
     private final ObjectMapper objectMapper;
     private final com.flexforge.engine.crypto.EncryptionService encryption;
+    private final org.springframework.context.ApplicationEventPublisher events;
 
     public DynamicCrudService(NamedParameterJdbcTemplate jdbc, MetadataRegistry registry,
                               SqlDialect dialect, ObjectMapper objectMapper,
-                              com.flexforge.engine.crypto.EncryptionService encryption) {
+                              com.flexforge.engine.crypto.EncryptionService encryption,
+                              org.springframework.context.ApplicationEventPublisher events) {
         this.jdbc = jdbc;
         this.registry = registry;
         this.dialect = dialect;
         this.objectMapper = objectMapper;
         this.encryption = encryption;
+        this.events = events;
     }
 
     public Page list(String entityName, QueryOptions opts) {
@@ -122,7 +125,9 @@ public class DynamicCrudService {
         jdbc.update(sql, params, keyHolder, new String[]{Naming.columnName(pk)});
 
         Object generatedId = extractKey(keyHolder);
-        return findById(entityName, generatedId);
+        Map<String, Object> created = findById(entityName, generatedId);
+        events.publishEvent(com.flexforge.engine.realtime.EntityEvent.of(entityName, "create", generatedId, created));
+        return created;
     }
 
     public Map<String, Object> update(String entityName, Object id, Map<String, Object> data) {
@@ -156,7 +161,9 @@ public class DynamicCrudService {
         if (affected == 0) {
             throw new NotFoundException(entity.name + " with id " + id + " not found");
         }
-        return findById(entityName, id);
+        Map<String, Object> updated = findById(entityName, id);
+        events.publishEvent(com.flexforge.engine.realtime.EntityEvent.of(entityName, "update", id, updated));
+        return updated;
     }
 
     public boolean delete(String entityName, Object id) {
@@ -170,6 +177,7 @@ public class DynamicCrudService {
         if (affected == 0) {
             throw new NotFoundException(entity.name + " with id " + id + " not found");
         }
+        events.publishEvent(com.flexforge.engine.realtime.EntityEvent.of(entityName, "delete", id, null));
         return true;
     }
 
