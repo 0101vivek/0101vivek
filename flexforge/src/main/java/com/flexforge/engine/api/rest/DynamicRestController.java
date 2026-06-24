@@ -82,6 +82,16 @@ public class DynamicRestController {
         return crud.list(entity, opts);
     }
 
+    @GetMapping("/{entity}/_aggregate")
+    public Object aggregate(@PathVariable String entity,
+                            @RequestParam(defaultValue = "count") String op,
+                            @RequestParam(required = false) String field,
+                            @RequestParam(required = false) String groupBy) {
+        guard(entity);
+        accessGuard.requireRead(entity);
+        return crud.aggregate(entity, op, field, groupBy);
+    }
+
     @GetMapping("/{entity}/{id}")
     public Map<String, Object> get(@PathVariable String entity, @PathVariable String id) {
         guard(entity);

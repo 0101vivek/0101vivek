@@ -75,6 +75,43 @@ public class DynamicCrudService {
         return new Page(rows, total, opts.page, opts.size);
     }
 
+    /** Aggregate query: op = count|sum|avg|min|max, optional numeric field, optional groupBy. */
+    public Object aggregate(String entityName, String op, String field, String groupBy) {
+        EntityConfig entity = registry.require(entityName);
+        String table = dialect.quote(Naming.tableName(entity));
+        String o = op == null ? "count" : op.toLowerCase();
+        if (!java.util.Set.of("count", "sum", "avg", "min", "max").contains(o)) {
+            throw new IllegalArgumentException("Unknown aggregate op '" + op + "'");
+        }
+        String aggExpr;
+        if (o.equals("count")) {
+            aggExpr = "COUNT(*)";
+        } else {
+            FieldConfig f = entity.field(field);
+            if (f == null) {
+                throw new IllegalArgumentException("Unknown field '" + field + "' for " + o);
+            }
+            aggExpr = o.toUpperCase() + "(" + dialect.quote(Naming.columnName(f)) + ")";
+        }
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        if (groupBy != null && !groupBy.isBlank()) {
+            FieldConfig g = entity.field(groupBy);
+            if (g == null) {
+                throw new IllegalArgumentException("Unknown groupBy field '" + groupBy + "'");
+            }
+            String gcol = dialect.quote(Naming.columnName(g));
+            String sql = "SELECT " + gcol + " AS grp, " + aggExpr + " AS val FROM " + table + " GROUP BY " + gcol;
+            return jdbc.query(sql, params, (rs, n) -> {
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("group", rs.getObject("grp"));
+                row.put("value", rs.getObject("val"));
+                return row;
+            });
+        }
+        Object value = jdbc.queryForObject("SELECT " + aggExpr + " AS val FROM " + table, params, Object.class);
+        return Map.of("op", o, "value", value == null ? 0 : value);
+    }
+
     public Map<String, Object> findById(String entityName, Object id) {
         EntityConfig entity = registry.require(entityName);
         FieldConfig pk = requirePk(entity);

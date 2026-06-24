@@ -184,6 +184,17 @@ flows:
         type: respond
         params: { body: { path: "default" } }
 
+  - name: onNewOrder       # record-change trigger: runs when an Order is created
+    trigger: { type: record, entity: Order, on: [create] }
+    steps:
+      - id: alert
+        type: notify
+        params: { channel: log, subject: "New order", message: "Order ${input.id} created" }
+        next: done
+      - id: done
+        type: respond
+        params: { body: { handled: true } }
+
   - name: assist            # AI step + notification (AI runs in stub mode w/o a key)
     steps:
       - id: think

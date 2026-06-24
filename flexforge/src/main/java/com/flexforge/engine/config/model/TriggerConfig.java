@@ -15,4 +15,10 @@ public class TriggerConfig {
 
     /** Alternative to cron: run every N milliseconds. */
     public Long fixedRateMs;
+
+    /** For type=record: the entity whose changes trigger this flow. */
+    public String entity;
+
+    /** For type=record: which ops fire it (create/update/delete); empty = all. */
+    public java.util.List<String> on = new java.util.ArrayList<>();
 }
