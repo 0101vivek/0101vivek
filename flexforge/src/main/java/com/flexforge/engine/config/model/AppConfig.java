@@ -37,6 +37,9 @@ public class AppConfig {
     /** No-code flows: trigger -> steps (logic/actions). */
     public List<FlowConfig> flows = new ArrayList<>();
 
+    /** AI provider configuration for the 'ai' flow step. */
+    public AiConfig ai = new AiConfig();
+
     public FlowConfig flow(String name) {
         for (FlowConfig f : flows) {
             if (f.name != null && f.name.equalsIgnoreCase(name)) {

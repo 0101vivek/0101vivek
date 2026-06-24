@@ -292,6 +292,12 @@ TESTS = [
      "POST /flows/grade/run score=70 / 30", "pass / fail respectively", "Functional", "PASS"),
     ("TC-26", "RealtimeIntegrationTest", "CRUD emits change events",
      "Create Product; GET /realtime/recent", "create event present for Product", "Functional", "PASS"),
+    ("TC-27", "P1PrimitivesIntegrationTest", "CRUD is audited",
+     "Create Customer; GET /__audit", "create entry recorded with user/op", "Security", "PASS"),
+    ("TC-28", "P1PrimitivesIntegrationTest", "Idempotency prevents duplicate create",
+     "POST Product twice with same Idempotency-Key", "replay returns same record (HTTP 200)", "Functional", "PASS"),
+    ("TC-29", "P1PrimitivesIntegrationTest", "AI step (stub) + notify step",
+     "POST /flows/assist/run", "summary returned; notification recorded", "Functional", "PASS"),
 ]
 
 def thin_border():

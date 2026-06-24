@@ -129,6 +129,26 @@ flows:
         type: respond
         params: { body: { result: "fail" } }
 
+  - name: assist            # AI step + notification (AI runs in stub mode w/o a key)
+    steps:
+      - id: think
+        type: ai
+        params: { prompt: "Summarize: ${input.text}" }
+        next: tell
+      - id: tell
+        type: notify
+        params: { channel: log, to: "${input.email}", subject: "Summary", message: "${steps.think.text}" }
+        next: done
+      - id: done
+        type: respond
+        params: { body: { summary: "${steps.think.text}" } }
+
+# AI provider (stub by default; set apiKey to use a real OpenAI-compatible endpoint)
+ai:
+  provider: stub
+  apiKey: ${AI_API_KEY}
+  model: gpt-4o-mini
+
 migrationPolicy:
   additive: auto
   destructive: require_approval

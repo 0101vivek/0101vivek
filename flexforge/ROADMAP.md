@@ -36,6 +36,18 @@ auth) is fully usable from the generated UI and APIs with no app code. ✔
 **Threshold met:** sensitive fields are encrypted at rest; images/documents store and
 serve through the API; both verified by tests (17 total passing). ✔
 
+## ✅ v0.9 — P1 platform primitives + AI-ready (DONE, partial)
+- **Real-time protocols**: SSE + WebSocket over a CRUD change-event stream
+- **Audit log** (`/__audit`) — every CRUD recorded with user/op/entity/id
+- **Idempotency** — `Idempotency-Key` header prevents duplicate creates (money-safe)
+- **AI flow step** (`ai`) — provider-abstracted (stub offline; OpenAI-compatible with a key);
+  the seam where the user's AI modules (RAG/classify/extract/agent) plug in
+- **Notification step** (`notify`) + `/__notifications`
+**Threshold met:** AI + notify usable inside flows with no external setup; audit and
+idempotency verified by tests (29 total passing). ✔
+*Still in P1: double-entry ledger, approval/maker-checker step, rules engine, scheduler
+trigger, payment connector, MCP protocol.*
+
 ## v1 — Production data layer + artifact packaging
 - Replace the hand-rolled dialect SQL with **Hibernate 6** (CRUD) + **jOOQ** (complex/dynamic
   queries); keep the `SqlDialect` seam.

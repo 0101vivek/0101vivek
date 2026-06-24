@@ -83,9 +83,10 @@ def tech_pdf():
     story.append(table(["Module", "Responsibility"], [
         ["config(.model)", "Config POJOs; loader; JSON-Schema + semantic validation; MetadataRegistry"],
         ["schema", "SqlDialect (H2/PG/MySQL), Naming, SchemaManager (DDL sync)"],
-        ["data", "DynamicCrudService (generic CRUD), FieldValidator, QueryOptions"],
+        ["data", "DynamicCrudService (generic CRUD), FieldValidator, QueryOptions, IdempotencyStore"],
         ["crypto / auth", "AES-256-GCM EncryptionService; JWT + API-key + AccessGuard"],
-        ["flow(.steps)", "FlowEngine, Expressions, FlowStep+StepRegistry; set/condition/db/http/log/respond"],
+        ["flow(.steps)", "FlowEngine; steps: set/condition/db/http/log/respond/ai/notify"],
+        ["audit / notify / ai", "AuditService (audit log); NotificationService; AiProvider (stub + OpenAI-compatible)"],
         ["realtime", "EntityEvent, RealtimeService (SSE), WebSocket handler"],
         ["api.*", "REST, GraphQL, meta/OpenAPI, file, endpoint, flow, realtime surfaces"],
         ["bootstrap", "EngineConfiguration (composition root), EngineBootstrap, CORS"],
@@ -192,6 +193,9 @@ TESTS = [
     ("TC-24", "Functional", "Flow db step creates record", "record visible via REST", "PASS"),
     ("TC-25", "Functional", "Flow condition branching", "pass / fail by score", "PASS"),
     ("TC-26", "Functional", "CRUD emits change events", "create event in /realtime/recent", "PASS"),
+    ("TC-27", "Security", "CRUD is audited", "create entry in /__audit", "PASS"),
+    ("TC-28", "Functional", "Idempotency-Key prevents dup create", "replay returns same record (200)", "PASS"),
+    ("TC-29", "Functional", "AI step (stub) + notify step", "summary returned; notification recorded", "PASS"),
 ]
 
 

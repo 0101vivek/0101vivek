@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,11 +37,15 @@ public class DynamicRestController {
     private final MetadataRegistry registry;
     private final com.flexforge.engine.auth.AccessGuard accessGuard;
 
+    private final com.flexforge.engine.data.IdempotencyStore idempotency;
+
     public DynamicRestController(DynamicCrudService crud, MetadataRegistry registry,
-                                 com.flexforge.engine.auth.AccessGuard accessGuard) {
+                                 com.flexforge.engine.auth.AccessGuard accessGuard,
+                                 com.flexforge.engine.data.IdempotencyStore idempotency) {
         this.crud = crud;
         this.registry = registry;
         this.accessGuard = accessGuard;
+        this.idempotency = idempotency;
     }
 
     @GetMapping("/{entity}")
@@ -85,10 +90,25 @@ public class DynamicRestController {
     }
 
     @PostMapping("/{entity}")
-    public ResponseEntity<Map<String, Object>> create(@PathVariable String entity,
-                                                       @RequestBody Map<String, Object> body) {
+    @SuppressWarnings("unchecked")
+    public ResponseEntity<Map<String, Object>> create(
+            @PathVariable String entity,
+            @RequestBody Map<String, Object> body,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
         guard(entity);
         accessGuard.requireWrite(entity);
+        // Replay protection: a repeated request with the same key returns the original result.
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            var cached = idempotency.get(entity, idempotencyKey);
+            if (cached.isPresent()) {
+                return ResponseEntity.status(HttpStatus.OK)
+                        .header("Idempotent-Replay", "true")
+                        .body((Map<String, Object>) cached.get());
+            }
+            Map<String, Object> created = crud.create(entity, body);
+            idempotency.put(entity, idempotencyKey, created);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(crud.create(entity, body));
     }
 

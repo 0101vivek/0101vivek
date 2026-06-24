@@ -122,6 +122,19 @@ public class EngineConfiguration {
     }
 
     @Bean
+    public com.flexforge.engine.ai.AiProvider aiProvider(AppConfig appConfig, ObjectMapper objectMapper) {
+        com.flexforge.engine.config.model.AiConfig ai =
+                appConfig.ai == null ? new com.flexforge.engine.config.model.AiConfig() : appConfig.ai;
+        ai.apiKey = resolve(ai.apiKey);
+        if (ai.apiKey != null && !ai.apiKey.isBlank() && !"stub".equalsIgnoreCase(ai.provider)) {
+            log.info("[engine] AI provider: {} ({})", ai.provider, ai.model);
+            return new com.flexforge.engine.ai.OpenAiCompatibleProvider(ai, objectMapper);
+        }
+        log.info("[engine] AI provider: stub (no apiKey configured)");
+        return new com.flexforge.engine.ai.StubAiProvider();
+    }
+
+    @Bean
     public SqlDialect sqlDialect(AppConfig appConfig) {
         String engine = resolve(appConfig.database == null ? null : appConfig.database.engine);
         if (engine == null || engine.isBlank()) {
