@@ -73,7 +73,7 @@ class FeaturesIntegrationTest {
     void adminUiIsServed() {
         ResponseEntity<String> ui = rest.getForEntity("/", String.class);
         assertThat(ui.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(ui.getBody()).contains("FlexForge Admin");
+        assertThat(ui.getBody()).contains("FlexForge Console");
         assertThat(rest.getForEntity("/app.js", String.class).getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 }

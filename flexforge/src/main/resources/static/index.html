@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>FlexForge Admin</title>
+    <title>FlexForge Console</title>
     <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
 <header class="topbar">
-    <div class="brand">⚡ FlexForge <span id="appId" class="muted"></span></div>
+    <div class="brand">
+        <span class="logo">⚡</span>
+        <span>FlexForge <span class="brand-sub">Console</span></span>
+        <span id="appChip" class="chip"></span>
+    </div>
     <div class="topbar-right">
         <a id="graphqlLink" href="/graphql/schema" target="_blank" class="ghost">GraphQL SDL</a>
         <a id="openapiLink" href="/__meta/openapi.json" target="_blank" class="ghost">OpenAPI</a>
@@ -18,18 +22,41 @@
 
 <div class="layout">
     <aside class="sidebar">
-        <div class="sidebar-title">Entities</div>
+        <nav>
+            <a class="nav-item active" data-view="dashboard" id="navDashboard">
+                <span class="ico">▦</span> Dashboard</a>
+        </nav>
+        <div class="sidebar-title">Data Models</div>
         <nav id="entityNav"></nav>
-        <div class="sidebar-title">API</div>
-        <div class="api-flags" id="apiFlags"></div>
+        <div class="sidebar-title">Automation</div>
+        <nav>
+            <a class="nav-item" data-view="flows" id="navFlows"><span class="ico">⚙</span> Flows</a>
+            <a class="nav-item" data-view="api" id="navApi"><span class="ico">⌁</span> API & Protocols</a>
+        </nav>
     </aside>
 
     <main class="content">
         <div id="banner" class="banner hidden"></div>
 
+        <!-- DASHBOARD -->
+        <section id="dashboardView">
+            <div class="page-head">
+                <div>
+                    <h1 id="dashTitle">Dashboard</h1>
+                    <p class="muted" id="dashSub"></p>
+                </div>
+            </div>
+            <div class="stats" id="statCards"></div>
+            <h2 class="section-h">Data Models</h2>
+            <div class="card-grid" id="entityCards"></div>
+            <h2 class="section-h">Flows</h2>
+            <div class="card-grid" id="flowCards"></div>
+        </section>
+
+        <!-- ENTITY DATA BROWSER -->
         <section id="entityView" class="hidden">
-            <div class="view-head">
-                <h2 id="entityTitle"></h2>
+            <div class="page-head">
+                <h1 id="entityTitle"></h1>
                 <div class="actions">
                     <input id="searchValue" class="search" placeholder="Search…"/>
                     <select id="searchField" class="search-field"></select>
@@ -47,10 +74,18 @@
             </div>
         </section>
 
-        <section id="welcome">
-            <h2>Welcome to FlexForge Admin</h2>
-            <p class="muted">This UI is generated entirely from the app's config metadata —
-                pick an entity on the left to browse and edit its data.</p>
+        <!-- FLOWS -->
+        <section id="flowsView" class="hidden">
+            <div class="page-head"><h1>Flows</h1><p class="muted">Run a no-code flow with a JSON input.</p></div>
+            <div class="card-grid" id="flowRunCards"></div>
+        </section>
+
+        <!-- API -->
+        <section id="apiView" class="hidden">
+            <div class="page-head"><h1>API & Protocols</h1></div>
+            <div class="card-grid" id="protocolCards"></div>
+            <h2 class="section-h">Custom Endpoints</h2>
+            <div class="card-grid" id="endpointCards"></div>
         </section>
     </main>
 </div>
@@ -64,6 +99,23 @@
         <div class="modal-foot">
             <button id="cancelBtn" class="btn">Cancel</button>
             <button id="saveBtn" class="btn primary">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Flow run modal -->
+<div id="flowModal" class="modal hidden">
+    <div class="modal-card">
+        <div class="modal-head"><h3 id="flowModalTitle"></h3><button id="flowModalClose" class="x">×</button></div>
+        <div class="form">
+            <label>Input (JSON)
+                <textarea id="flowInput" rows="4">{}</textarea></label>
+            <div class="muted" style="font-size:12px">Output</div>
+            <pre id="flowOutput" class="output">—</pre>
+        </div>
+        <div class="modal-foot">
+            <button id="flowCancelBtn" class="btn">Close</button>
+            <button id="flowRunBtn" class="btn primary">Run flow</button>
         </div>
     </div>
 </div>

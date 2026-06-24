@@ -71,6 +71,19 @@ public class MetaController {
             entities.add(em);
         }
         out.put("entities", entities);
+
+        List<Map<String, Object>> flows = new ArrayList<>();
+        for (com.flexforge.engine.config.model.FlowConfig f : cfg.flows) {
+            flows.add(Map.of("name", f.name, "steps", f.steps.size()));
+        }
+        out.put("flows", flows);
+
+        List<Map<String, Object>> endpoints = new ArrayList<>();
+        for (com.flexforge.engine.config.model.EndpointConfig e : cfg.endpoints) {
+            endpoints.add(Map.of("name", e.name, "method", e.method));
+        }
+        out.put("endpoints", endpoints);
+
         return out;
     }
 
