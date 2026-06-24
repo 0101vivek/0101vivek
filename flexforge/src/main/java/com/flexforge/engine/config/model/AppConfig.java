@@ -34,6 +34,18 @@ public class AppConfig {
     /** Custom endpoints beyond CRUD (redirects, static responses, webhooks). */
     public List<EndpointConfig> endpoints = new ArrayList<>();
 
+    /** No-code flows: trigger -> steps (logic/actions). */
+    public List<FlowConfig> flows = new ArrayList<>();
+
+    public FlowConfig flow(String name) {
+        for (FlowConfig f : flows) {
+            if (f.name != null && f.name.equalsIgnoreCase(name)) {
+                return f;
+            }
+        }
+        return null;
+    }
+
     public EndpointConfig endpoint(String name) {
         for (EndpointConfig e : endpoints) {
             if (e.name != null && e.name.equalsIgnoreCase(name)) {

@@ -92,6 +92,43 @@ endpoints:
       type: json
       body: { accepted: true }
 
+# No-code flows: trigger via POST /flows/{name}/run
+flows:
+  - name: greet
+    steps:
+      - id: reply
+        type: respond
+        params:
+          body: { message: "Hello ${input.name}" }
+
+  - name: signup            # create a Customer through a flow, then respond
+    steps:
+      - id: create
+        type: db
+        params:
+          op: create
+          entity: Customer
+          data: { email: "${input.email}", fullName: "${input.fullName}" }
+        next: done
+      - id: done
+        type: respond
+        params:
+          body: { id: "${steps.create.id}", email: "${steps.create.email}" }
+
+  - name: grade             # branch on a numeric condition
+    steps:
+      - id: check
+        type: condition
+        params: { left: "${input.score}", op: ">=", right: 50 }
+        then: pass
+        else: fail
+      - id: pass
+        type: respond
+        params: { body: { result: "pass" } }
+      - id: fail
+        type: respond
+        params: { body: { result: "fail" } }
+
 migrationPolicy:
   additive: auto
   destructive: require_approval
